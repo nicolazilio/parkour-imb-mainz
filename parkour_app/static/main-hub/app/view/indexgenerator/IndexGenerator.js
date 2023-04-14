@@ -196,7 +196,7 @@ Ext.define('MainHub.view.indexgenerator.IndexGenerator', {
                 return children[0].get('request_name');
               },
               getTotalDepth: function (children) {
-                return Ext.sum(Ext.pluck(Ext.pluck(children, 'data'), 'sequencing_depth'));
+                return Ext.Array.sum(Ext.Array.pluck(Ext.Array.pluck(children, 'data'), 'sequencing_depth'));
               },
               getCount: function(children){
                 return children.length
@@ -258,7 +258,7 @@ Ext.define('MainHub.view.indexgenerator.IndexGenerator', {
           markDirty: false,
           stripeRows: false
         },
-        multiSelect: true,
+        selModel: {mode: "MULTI"},
         sortableColumns: false,
         enableColumnMove: false,
         enableColumnResize: false,

@@ -116,7 +116,7 @@ Ext.define('MainHub.grid.SearchInputMixin', {
   changeFilter: function (el, value) {
     var grid = el.up('grid');
     var store = grid.getStore();
-    var columns = Ext.pluck(grid.getColumns(), 'dataIndex');
+    var columns = Ext.Array.pluck(grid.getColumns(), 'dataIndex');
 
     store.clearFilter();
     store.filterBy(function (record) {
@@ -138,7 +138,7 @@ Ext.define('MainHub.grid.CheckboxesAndSearchInputMixin', {
   changeFilter: function (el, value) {
     var grid = el.up('grid');
     var store = grid.getStore();
-    var columns = Ext.pluck(grid.getColumns(), 'dataIndex');
+    var columns = Ext.Array.pluck(grid.getColumns(), 'dataIndex');
     var showLibraries;
     var showSamples;
     var searchQuery;

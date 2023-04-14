@@ -62,7 +62,7 @@ Ext.define('MainHub.view.libraries.LibrariesController', {
     changeFilter: function(el, value) {
         var grid = Ext.getCmp('librariesTable'),
             store = grid.getStore(),
-            columns = Ext.pluck(grid.getColumns(), 'dataIndex'),
+            columns = Ext.Array.pluck(grid.getColumns(), 'dataIndex'),
             showLibraries = null,
             showSamples = null,
             searchQuery = null;

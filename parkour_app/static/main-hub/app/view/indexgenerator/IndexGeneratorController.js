@@ -263,7 +263,7 @@ Ext.define('MainHub.view.indexgenerator.IndexGeneratorController', {
       ));
       Ext.getCmp('save-pool-button').enable();
 
-      var recordTypes = Ext.pluck(Ext.Array.pluck(store.data.items, 'data'), 'record_type');
+      var recordTypes = Ext.Array.pluck(Ext.Array.pluck(store.data.items, 'data'), 'record_type');
       if (recordTypes.indexOf('Sample') > -1) {
         Ext.getCmp('generate-indices-button').enable();
       }

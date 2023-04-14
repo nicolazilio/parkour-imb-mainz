@@ -190,7 +190,7 @@ Ext.define('MainHub.view.pooling.Pooling', {
             return children[0].get('pool_name');
           },
           getRealPoolSize: function (children) {
-            return Ext.sum(Ext.pluck(Ext.pluck(children, 'data'), 'sequencing_depth'));
+            return Ext.Array.sum(Ext.Array.pluck(Ext.Array.pluck(children, 'data'), 'sequencing_depth'));
           },
           getPoolSize: function (children) {
             return Ext.String.format('({0})', children[0].get('pool_size'));

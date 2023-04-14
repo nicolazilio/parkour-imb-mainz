@@ -60,7 +60,7 @@ Ext.define('MainHub.view.main.Main', {
                 {
                     xtype: 'tbtext',
                     cls: 'top-user-name',
-                    text: USER.name      // from 'globals.html'
+                    html: USER.name      // from 'globals.html'
                 },
                 {
                     xtype: 'button',

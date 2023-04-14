@@ -2,7 +2,7 @@ Ext.define('MainHub.mixins.grid.CheckboxesAndSearchInput', {
   changeFilter: function (el, value) {
     var grid = el.up('grid');
     var store = grid.getStore();
-    var columns = Ext.pluck(grid.getColumns(), 'dataIndex');
+    var columns = Ext.Array.pluck(grid.getColumns(), 'dataIndex');
     var showLibraries = null;
     var showSamples = null;
     var searchQuery = null;
