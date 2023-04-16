@@ -190,7 +190,7 @@ Ext.define('MainHub.view.flowcell.FlowcellWindow', {
         xtype: 'button',
         itemId: 'save-button',
         text: 'Save',
-        iconCls: 'fa fa-floppy-o fa-lg'
+        iconCls: 'fa fa-save fa-lg'
       }
     ]
   }]

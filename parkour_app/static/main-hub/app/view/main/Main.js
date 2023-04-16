@@ -52,7 +52,7 @@ Ext.define('MainHub.view.main.Main', {
                 {
                     margin: '0 0 0 8',
                     // ui: 'header',
-                    iconCls: 'x-fa fa-navicon',
+                    iconCls: 'x-fa fa-bars',
                     id: 'main-navigation-btn',
                     handler: 'onToggleNavigationSize'
                 },
@@ -80,7 +80,7 @@ Ext.define('MainHub.view.main.Main', {
                 {
                     xtype: 'button',
                     ui: 'header',
-                    iconCls: 'x-fa fa-sign-out',
+                    iconCls: 'x-fa fa-sign-out-alt',
                     href: 'logout',
                     hrefTarget:'_self',
                     tooltip: 'Logout'

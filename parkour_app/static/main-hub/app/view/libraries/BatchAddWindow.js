@@ -141,7 +141,7 @@ Ext.define('MainHub.view.libraries.BatchAddWindow', {
         {
           xtype: 'button',
           itemId: 'save-button',
-          iconCls: 'fa fa-floppy-o fa-lg',
+          iconCls: 'fa fa-save fa-lg',
           text: 'Save'
         }
       ],

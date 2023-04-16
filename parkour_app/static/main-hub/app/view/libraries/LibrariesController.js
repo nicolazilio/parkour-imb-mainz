@@ -42,7 +42,7 @@ Ext.define('MainHub.view.libraries.LibrariesController', {
         Ext.create('Ext.menu.Menu', {
             items: [{
                     text: 'Edit',
-                    iconCls: 'x-fa fa-pencil',
+                    iconCls: 'x-fa fa-pencil-alt',
                     handler: function() {
                         me.editRecord(record);
                     }

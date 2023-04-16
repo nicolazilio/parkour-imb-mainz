@@ -31,7 +31,7 @@ Ext.define('MainHub.view.usage.Usage', {
           dateFormat: 'd.m.Y',
           mainBtnTextColor: '#999',
           mainBtnIconCls: 'x-fa fa-calendar',
-          presetPeriodsBtnIconCls: 'x-fa fa-calendar-check-o',
+          presetPeriodsBtnIconCls: 'x-fa fa-calendar-check',
           confirmBtnIconCls: 'x-fa fa-check'
         }
       }]

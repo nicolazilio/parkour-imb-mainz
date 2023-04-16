@@ -157,7 +157,7 @@ Ext.define('MainHub.view.statistics.RunStatistics', {
           dateFormat: 'd.m.Y',
           mainBtnTextColor: '#999',
           mainBtnIconCls: 'x-fa fa-calendar',
-          presetPeriodsBtnIconCls: 'x-fa fa-calendar-check-o',
+          presetPeriodsBtnIconCls: 'x-fa fa-calendar-check',
           confirmBtnIconCls: 'x-fa fa-check'
         }
       }]

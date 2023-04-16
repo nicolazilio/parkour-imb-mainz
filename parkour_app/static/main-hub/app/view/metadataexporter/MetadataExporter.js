@@ -129,7 +129,7 @@ Ext.define('MainHub.view.metadataexporter.MetadataExporter', {
                 {
                   xtype: 'button',
                   itemId: 'refresh-galaxy-status-button',
-                  iconCls: 'fa fa-lg fa-refresh',
+                  iconCls: 'fa fa-lg fa-sync',
                   ui: 'header',
                   text: 'Refresh'
                 }

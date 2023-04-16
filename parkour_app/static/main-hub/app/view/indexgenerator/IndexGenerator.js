@@ -546,7 +546,7 @@ Ext.define('MainHub.view.indexgenerator.IndexGenerator', {
             xtype: 'button',
             itemId: 'download-index-list-button',
             text: 'Download Index List (csv)',
-            iconCls: 'fa fa-file-excel-o fa-lg'
+            iconCls: 'fa fa-file-excel fa-lg'
           },
           */
           '->',
@@ -554,7 +554,7 @@ Ext.define('MainHub.view.indexgenerator.IndexGenerator', {
             xtype: 'button',
             id: 'save-pool-button',
             itemId: 'save-pool-button',
-            iconCls: 'fa fa-floppy-o fa-lg',
+            iconCls: 'fa fa-save fa-lg',
             text: 'Save Pool',
             disabled: true
           }

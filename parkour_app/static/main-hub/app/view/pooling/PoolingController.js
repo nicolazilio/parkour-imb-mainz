@@ -207,14 +207,14 @@ Ext.define('MainHub.view.pooling.PoolingController', {
       type: 'button',
       itemId: 'download-benchtop-protocol-button',
       text: 'Download Benchtop Protocol',
-      iconCls: 'fa fa-file-excel-o fa-lg'
+      iconCls: 'fa fa-file-excel fa-lg'
     });
 
     toolbar.insert(1, {
       type: 'button',
       itemId: 'download-pooling-template-button',
       text: 'Download Template QC Normalization and Pooling',
-      iconCls: 'fa fa-file-excel-o fa-lg'
+      iconCls: 'fa fa-file-excel fa-lg'
     });
   },
 

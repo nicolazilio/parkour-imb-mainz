@@ -618,7 +618,7 @@ Ext.define('MainHub.view.indexgenerator.IndexGenerator', {
             xtype: 'button',
             id: 'save-pool-button',
             itemId: 'save-pool-button',
-            iconCls: 'fa fa-floppy-o fa-lg',
+            iconCls: 'fa fa-save fa-lg',
             text: 'Save Pool',
             disabled: true
           }

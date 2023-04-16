@@ -7,7 +7,7 @@ Ext.define('MainHub.view.usage.Records', {
   ],
 
   title: 'Libraries & Samples',
-  // iconCls: 'x-fa fa-pie-chart',
+  // iconCls: 'x-fa fa-chart-pie',
 
   items: [
     {

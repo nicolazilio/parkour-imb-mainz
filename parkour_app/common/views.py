@@ -46,7 +46,7 @@ def get_navigation_tree(request):
     data = [
         {
             "text": "Requests",
-            "iconCls": "x-fa fa-file-text",
+            "iconCls": "x-fa fa-file-alt",
             "viewType": "requests",
             "leaf": True,
         },
@@ -80,31 +80,31 @@ def get_navigation_tree(request):
             },
             {
                 "text": "Pooling",
-                "iconCls": "x-fa fa-sort-amount-desc",
+                "iconCls": "x-fa fa-sort-amount-down",
                 "viewType": "pooling",
                 "leaf": True,
             },
             {
                 "text": "Load Flowcells",
-                "iconCls": "x-fa fa-level-down",
+                "iconCls": "x-fa fa-level-down-alt",
                 "viewType": "flowcells",
                 "leaf": True,
             },
             {
                 "text": "Invoicing",
-                "iconCls": "x-fa fa-eur",
+                "iconCls": "x-fa fa-euro-sign",
                 "viewType": "invoicing",
                 "leaf": True,
             },
             {
                 "text": "Usage",
-                "iconCls": "x-fa fa-pie-chart",
+                "iconCls": "x-fa fa-chart-pie",
                 "viewType": "usage",
                 "leaf": True,
             },
             {
                 "text": "Statistics",
-                "iconCls": "x-fa fa-line-chart",
+                "iconCls": "x-fa fa-chart-line",
                 "expanded": True,
                 "children": [
                     {

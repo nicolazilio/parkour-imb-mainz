@@ -180,12 +180,12 @@ Ext.define('MainHub.view.flowcell.Flowcells', {
           {
             itemId: 'download-benchtop-protocol-button',
             text: 'Download Benchtop Protocol',
-            iconCls: 'fa fa-file-excel-o fa-lg'
+            iconCls: 'fa fa-file-excel fa-lg'
           },
           {
             itemId: 'download-sample-sheet-button',
             text: 'Download Sample Sheet',
-            iconCls: 'fa fa-file-excel-o fa-lg'
+            iconCls: 'fa fa-file-excel fa-lg'
           },
           '->',
           {
@@ -196,7 +196,7 @@ Ext.define('MainHub.view.flowcell.Flowcells', {
           {
             // xtype: 'button',
             itemId: 'save-button',
-            iconCls: 'fa fa-floppy-o fa-lg',
+            iconCls: 'fa fa-save fa-lg',
             text: 'Save'
           }
         ]

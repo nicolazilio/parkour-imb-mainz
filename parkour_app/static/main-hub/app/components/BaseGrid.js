@@ -62,7 +62,7 @@ Ext.define('MainHub.components.BaseGrid', {
       {
         xtype: 'button',
         itemId: 'save-button',
-        iconCls: 'fa fa-floppy-o fa-lg',
+        iconCls: 'fa fa-save fa-lg',
         text: 'Save'
       }
     ]
