@@ -72,10 +72,6 @@ Ext.define('MainHub.Application', {
     'metadataexporter.LibrarySelections'
   ],
 
-  requires: [
-    'Ext.ux.ToastMessage'
-  ],
-
   launch: function () {
     // TODO - Launch the application
   },

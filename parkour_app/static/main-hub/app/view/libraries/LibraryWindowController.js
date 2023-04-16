@@ -107,7 +107,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
             Ext.getStore('libraryProtocolsStore').reload({
                 callback: function(records, operation, success) {
                     if (!success) {
-                        Ext.ux.ToastMessage('Cannot load Library Protocols', 'error');
+                        new Noty({ text: 'Cannot load Library Protocols', type: 'error' }).show();
                     } else {
                         var libraryProtocolField = Ext.getCmp('libraryProtocolField');
                         libraryProtocolField.select(record.library_protocol);
@@ -169,7 +169,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
             },
             callback: function(records, operation, success) {
                 if (!success) {
-                    Ext.ux.ToastMessage('Cannot load Library Types', 'error');
+                    new Noty({ text: 'Cannot load Library Types', type: 'error' }).show();
                 } else {
                     libraryTypeField.setDisabled(false);
 
@@ -220,7 +220,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
                 'index_type_id': record.data.id
             },
             callback: function(records, operation, success) {
-                if (!success) Ext.ux.ToastMessage('Cannot load Index I7', 'error');
+                if (!success) new Noty({ text: 'Cannot load Index I7', type: 'error' }).show();
                 if (wnd.mode == 'edit' && setInitialValues === true) indexI7Field.setValue(wndRecord.index_i7);
             }
         });
@@ -231,7 +231,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
                 'index_type_id': record.data.id
             },
             callback: function(records, operation, success) {
-                if (!success) Ext.ux.ToastMessage('Cannot load Index I5', 'error');
+                if (!success) new Noty({ text: 'Cannot load Index I5', type: 'error' }).show();
                 if (wnd.mode == 'edit' && setInitialValues === true) indexI5Field.setValue(wndRecord.index_i5);
             }
         });
@@ -327,7 +327,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
             },
             callback: function(records, operation, success) {
                 if (!success) {
-                    Ext.ux.ToastMessage('Cannot load Library Protocols', 'error');
+                    new Noty({ text: 'Cannot load Library Protocols', type: 'error' }).show()
                 } else {
                     sampleProtocolField.setDisabled(false);
 
@@ -369,7 +369,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
             },
             callback: function(records, operation, success) {
                 if (!success) {
-                    Ext.ux.ToastMessage('Cannot load Library Types', 'error');
+                    new Noty({ text: 'Cannot load Library Types', type: 'error' }).show();
                 } else {
                     sampleTypeField.setDisabled(false);
 
@@ -431,7 +431,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
                         if (wnd.mode == 'add') {
                             var grid = Ext.getCmp('librariesInRequestTable');
                             grid.getStore().add(obj.data);
-                            Ext.ux.ToastMessage('Record has been added!');
+                            new Noty({ text: 'Record has been added!' }).show();
                         } else {
                             Ext.getStore('librariesInRequestStore').reload({
                                 params: {
@@ -441,7 +441,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
                             // Ext.getStore('requestsStore').reload();
                             Ext.getStore('librariesStore').reload();
                             // MainHub.Utilities.reloadAllStores();
-                            Ext.ux.ToastMessage('Record has been updated!');
+                            new Noty({ text: 'Record has been updated!' }).show();
                         }
                         // Ext.getStore('PoolingTree').reload();
 
@@ -453,7 +453,7 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
                             wnd.close();
                         }
                     } else {
-                        Ext.ux.ToastMessage(obj.error, 'error');
+                        new Noty({ text: obj.error, type: 'error' }).show();
                         console.error('[ERROR]: ' + url);
                         console.error(response);
                         wnd.setLoading(false);
@@ -462,13 +462,13 @@ Ext.define('MainHub.view.libraries.LibraryWindowController', {
 
                 failure: function(response) {
                     wnd.setLoading(false);
-                    Ext.ux.ToastMessage(response.statusText, 'error');
+                    new Noty({ text: response.statusText, type: 'error' }).show();
                     console.error('[ERROR]: ' + url);
                     console.error(response);
                 }
             });
         } else {
-            Ext.ux.ToastMessage('Check the form', 'warning');
+            new Noty({ text: 'Check the form', type: 'warning' }).show();
         }
     },
 
