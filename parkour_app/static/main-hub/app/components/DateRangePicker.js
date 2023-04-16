@@ -1,4 +1,4 @@
-Ext.define('Ext.ux.DateRangePicker', {
+Ext.define('MainHub.components.DateRangePicker', {
   extend: 'Ext.button.Button',
   alias: 'widget.daterangepicker',
 

@@ -1,8 +1,8 @@
-Ext.define('Ext.ux.FileGridField', {
+Ext.define('MainHub.components.FileGridField', {
   extend: 'Ext.form.FieldContainer',
   alias: 'widget.filegridfield',
 
-  requires: ['Ext.ux.MultiFileField'],
+  requires: ['MainHub.components.MultiFileField'],
 
   store: '',
   uploadFileUrl: '',

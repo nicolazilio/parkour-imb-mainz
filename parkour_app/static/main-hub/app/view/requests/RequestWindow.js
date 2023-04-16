@@ -4,7 +4,7 @@ Ext.define('MainHub.view.requests.RequestWindow', {
     'MainHub.view.requests.RequestWindowController',
     'MainHub.view.libraries.LibraryWindow',
     'MainHub.view.libraries.BatchAddWindow',
-    'Ext.ux.FileGridField'
+    'MainHub.components.FileGridField'
   ],
   controller: 'requests-requestwindow',
 

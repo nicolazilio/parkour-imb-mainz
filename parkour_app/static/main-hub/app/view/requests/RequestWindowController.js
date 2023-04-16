@@ -2,7 +2,7 @@ Ext.define('MainHub.view.requests.RequestWindowController', {
   extend: 'Ext.app.ViewController',
   alias: 'controller.requests-requestwindow',
 
-  requires: ['Ext.ux.FileUploadWindow'],
+  requires: ['MainHub.components.FileUploadWindow'],
 
   config: {
     control: {

@@ -9,7 +9,7 @@ Ext.define('MainHub.view.usage.Usage', {
     'MainHub.view.usage.PrincipalInvestigators',
     'MainHub.view.usage.LibraryTypes',
     'Ext.ux.layout.ResponsiveColumn',
-    'Ext.ux.DateRangePicker'
+    'MainHub.components.DateRangePicker'
   ],
 
   controller: 'usage',

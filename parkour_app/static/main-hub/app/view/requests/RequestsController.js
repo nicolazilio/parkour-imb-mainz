@@ -219,7 +219,7 @@ Ext.define('MainHub.view.requests.RequestsController', {
         'api/requests/{0}/upload_deep_sequencing_request/', requestId
     );
 
-    Ext.create('Ext.ux.FileUploadWindow', {
+    Ext.create('MainHub.components.FileUploadWindow', {
       onFileUpload: function () {
         var uploadWindow = this;
         var form = this.down('form').getForm();

@@ -3,7 +3,7 @@ Ext.define('MainHub.view.libraries.LibraryWindow', {
 
     requires: [
         'MainHub.view.libraries.LibraryWindowController',
-        'Ext.ux.FileGridField'
+        'MainHub.components.FileGridField'
     ],
 
     controller: 'libraries-librarywindow',

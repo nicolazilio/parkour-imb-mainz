@@ -6,7 +6,7 @@ Ext.define('MainHub.view.statistics.Sequences', {
     'MainHub.components.BaseGrid',
     'MainHub.components.SearchField',
     'MainHub.view.statistics.SequencesController',
-    'Ext.ux.DateRangePicker'
+    'MainHub.components.DateRangePicker'
   ],
 
   controller: 'sequences-statistics',

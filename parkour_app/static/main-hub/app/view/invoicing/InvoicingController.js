@@ -3,7 +3,7 @@ Ext.define('MainHub.view.invoicing.InvoicingController', {
   alias: 'controller.invoicing',
 
   requires: [
-    'Ext.ux.FileUploadWindow'
+    'MainHub.components.FileUploadWindow'
   ],
 
   config: {
@@ -106,7 +106,7 @@ Ext.define('MainHub.view.invoicing.InvoicingController', {
     var billingPeriodCb = btn.up('grid').down('#billing-period-combobox');
     var value = billingPeriodCb.getValue();
 
-    Ext.create('Ext.ux.FileUploadWindow', {
+    Ext.create('MainHub.components.FileUploadWindow', {
       fileFieldName: 'report',
 
       onFileUpload: function () {

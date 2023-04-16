@@ -1,4 +1,4 @@
-Ext.define('Ext.ux.FileUploadWindow', {
+Ext.define('MainHub.components.FileUploadWindow', {
   extend: 'Ext.window.Window',
   alias: 'widget.fileuploadwindow',
 

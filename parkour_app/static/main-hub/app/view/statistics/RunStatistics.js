@@ -7,7 +7,7 @@ Ext.define('MainHub.view.statistics.RunStatistics', {
     'MainHub.components.MonthPicker',
     'MainHub.components.SearchField',
     'MainHub.view.statistics.RunStatisticsController',
-    'Ext.ux.DateRangePicker'
+    'MainHub.components.DateRangePicker'
   ],
 
   controller: 'run-statistics',

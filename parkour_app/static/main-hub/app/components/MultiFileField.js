@@ -1,4 +1,4 @@
-Ext.define('Ext.ux.MultiFileField', {
+Ext.define('MainHub.components.MultiFileField', {
     extend: 'Ext.form.field.File',
     alias: 'widget.multifilefield',
 
