@@ -34,7 +34,7 @@ Ext.define('MainHub.view.usage.UsageController', {
     chartPanels.forEach(function (name) {
       var panel = view.down(name);
       var emptyText = panel.down('#empty-text');
-      var polar = panel.down('polar');
+      var polar = panel.down('legacypolar');
       var cartesian = panel.down('cartesian');
 
       panel.setLoading();

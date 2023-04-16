@@ -1,5 +1,5 @@
 Ext.define('MainHub.view.usage.ChartPolarBase', {
-  extend: 'Ext.chart.PolarChart',
+  extend: 'MainHub.view.usage.PolarChart',
   xtype: 'parkourpolar',
 
   border: 0,

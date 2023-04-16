@@ -12,13 +12,13 @@
  * Pie charts and Radar charts are common examples of Polar charts.
  *
  */
-Ext.define('Ext.chart.PolarChart', {
+Ext.define('MainHub.view.usage.PolarChart', {
     extend: 'Ext.chart.AbstractChart',
     requires: [
         'Ext.chart.grid.CircularGrid',
         'Ext.chart.grid.RadialGrid'
     ],
-    xtype: 'polar',
+    xtype: 'legacypolar',
     isPolar: true,
 
     config: {
