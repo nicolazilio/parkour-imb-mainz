@@ -115,17 +115,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         return False
-
-
-class CheckUserEmailExtension:
-    def clean_email(self):
-        email = self.cleaned_data.get("email")
-
-        if email:
-            if 'imb.de' in email:
-                raise forms.ValidationError("Use the full email extension imb-mainz.de, not just imb.de")
-        return email
-
+    
     @admin.action(description="Mark as archived")
     def mark_as_archived(self, request, queryset):
         queryset.update(archived=True)
@@ -135,7 +125,17 @@ class CheckUserEmailExtension:
         queryset.update(archived=False)
 
 
-class UserCreationForm(UserCreationForm, CheckUserEmailExtension):
+# class CheckUserEmailExtension:
+#     def clean_email(self):
+#         email = self.cleaned_data.get("email")
+
+#         if email:
+#             if 'imb.de' in email:
+#                 raise forms.ValidationError("Use the full email extension imb-mainz.de, not just imb.de")
+#         return email
+
+
+class UserCreationForm(UserCreationForm): #, CheckUserEmailExtension):
     """
     A UserCreationForm with optional password inputs.
     """
@@ -149,16 +149,16 @@ class UserCreationForm(UserCreationForm, CheckUserEmailExtension):
         self.fields["password1"].widget.attrs["autocomplete"] = "off"
         self.fields["password2"].widget.attrs["autocomplete"] = "off"
 
-    class Meta:
-        model = User
-        fields = (
-            'first_name',
-            'last_name',
-            'email',
-            'is_pi',
-            'password1',
-            'password2',
-        )
+    # class Meta:
+    #     model = User
+    #     fields = (
+    #         'first_name',
+    #         'last_name',
+    #         'email',
+    #         'is_pi',
+    #         'password1',
+    #         'password2',
+    #     )
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -168,8 +168,8 @@ class UserCreationForm(UserCreationForm, CheckUserEmailExtension):
         return password2
 
 
-class UserChangeForm(UserChangeForm, CheckUserEmailExtension):
-    pass
+# class UserChangeForm(UserChangeForm, CheckUserEmailExtension):
+#     pass
 
 class PiFilter(SimpleListFilter):
     title = 'PI' # or use _('country') for translated title
