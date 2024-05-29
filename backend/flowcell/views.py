@@ -423,7 +423,7 @@ class FlowcellAnalysisViewSet(viewsets.ViewSet):
         requests = dict()
         for request in flowcell.requests.all():
             rname = request.name
-            requests[rname] = dict()
+            requests[rname] = requests.get(rname, dict())
             records = list(
                 itertools.chain(request.libraries.all(), request.samples.all())
             )
