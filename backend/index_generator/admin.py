@@ -74,6 +74,7 @@ class PoolAdmin(admin.ModelAdmin):
     actions = (
         "mark_as_archived",
         "mark_as_non_archived",
+        "reload_pool"
     )
 
     @admin.action(description="Mark as archived")
@@ -84,6 +85,13 @@ class PoolAdmin(admin.ModelAdmin):
     def mark_as_non_archived(self, request, queryset):
         queryset.update(archived=False)
 
+    @admin.action(description="Re-load pool")
+    def reload_pool(self, request, queryset):
+
+        queryset.update(loaded=False)
+        for pool in queryset:
+            pool.libraries.update(status=4)
+            pool.samples.update(status=4)
 
 # Do not show in 'main' admin anymore, now used as inline for
 # lane capacity/size of Sequencer
