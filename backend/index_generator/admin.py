@@ -88,7 +88,7 @@ class PoolAdmin(admin.ModelAdmin):
     @admin.action(description="Re-load pool")
     def reload_pool(self, request, queryset):
 
-        queryset.update(loaded=False)
+        queryset.update(loaded=0)
         for pool in queryset:
             pool.libraries.update(status=4)
             pool.samples.update(status=4)
