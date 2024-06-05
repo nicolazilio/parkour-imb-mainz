@@ -102,7 +102,7 @@ class SequencesSerializer(ModelSerializer):
 
         items, processed_requests = {}, {}
         for request in instance.fetched_requests:
-            if request.name not in processed_requests:
+            if request.pk not in processed_requests:
                 records = request.fetched_libraries + request.fetched_samples
                 for record in records:
                     barcode = record.barcode
@@ -116,7 +116,7 @@ class SequencesSerializer(ModelSerializer):
                         "pool": pools.get(barcode, ""),
                         "lane": lanes.get(barcode, ""),
                     }
-                processed_requests[request.name] = True
+                processed_requests[request.pk] = True
 
         # If merge-lanes-sequences-checkbox is ticked, sum reads_pf_sequenced for 
         # samples with identical name from different lanes of the same flowcell
