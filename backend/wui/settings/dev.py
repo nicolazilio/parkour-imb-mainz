@@ -34,7 +34,7 @@ MIGRATION_LINTER_OPTIONS = {
     "no_cache": True,
 }
 
-LOGGING["handlers"] = {
+LOGGING["handlers"] = LOGGING["handlers"] | {
     "rich_console": {
         "class": "rich.logging.RichHandler",
         "formatter": "rich",
@@ -51,7 +51,7 @@ LOGGING["loggers"] = {
         "propagate": True,
     },
     "django": {
-        "handlers": ["rich_console"],
+        "handlers": ["rich_console", "logfile"],
         "propagate": False,
     },
     "django.db.backends": {

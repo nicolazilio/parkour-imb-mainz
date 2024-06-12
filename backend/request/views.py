@@ -53,6 +53,7 @@ from django.contrib.auth.decorators import login_required
 
 from .models import FileRequest, Request
 from .serializers import RequestFileSerializer, RequestSerializer
+from extra.utilities import get_client_ip
 
 User = get_user_model()
 Library = apps.get_model("library", "Library")
@@ -532,19 +533,6 @@ class RequestViewSet(viewsets.ModelViewSet):
         Mark request as approved by saving message as deep_seq_request and 
         change request's libraries' and samples' statuses to 1.
         """
-        
-        def get_client_ip(request):
-            # Stolen from https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
-            # and amended
-            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-            ip = 'N/A'
-            if x_forwarded_for:
-                ip = x_forwarded_for.split(',')[0]
-            else:
-                remote_address = request.META.get('REMOTE_ADDR')
-                if remote_address:
-                    ip = remote_address
-            return ip
 
         try:
 
