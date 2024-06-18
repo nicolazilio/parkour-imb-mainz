@@ -10,7 +10,7 @@ LOGGING["loggers"] = {
     },
     "django": {
         "handlers": ["console", "logfile"],
-        "level": "ERROR",
+        "level": "WARNING",
         "propagate": False,
     },
     "django.db.backends": {
