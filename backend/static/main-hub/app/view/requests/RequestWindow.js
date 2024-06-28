@@ -376,8 +376,7 @@ Ext.define("MainHub.view.requests.RequestWindow", {
       },
       hidden: !(
         USER.is_staff ||
-        USER.member_of_bcf ||
-        USER.is_bioinformatician
+        USER.member_of_bcf
       ),
       items: [
         {
