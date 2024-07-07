@@ -47,4 +47,4 @@ class PoolingAdmin(admin.ModelAdmin):
 
     def pool(self, obj):
         instance = obj.library if obj.library else obj.sample
-        return instance.pool.get().name
+        return ', '.join([p.name for p in instance.pool.all()])
