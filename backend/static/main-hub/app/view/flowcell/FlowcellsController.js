@@ -52,6 +52,86 @@ Ext.define("MainHub.view.flowcell.FlowcellsController", {
     },
   },
 
+  qualityCheckSingle: function (record, result) {
+    var me = this;
+    var loadingConcentration = record.get('loading_concentration');
+    var phixPercentage = record.get('phix');
+
+    if (!loadingConcentration || !phixPercentage) {
+      Ext.Msg.show({
+        title: "Missing information",
+        message: Ext.String.format(
+          "Do you want to approve this lane without setting its loading " +
+          "concentration and/or % PhiX?"
+        ),
+        buttons: Ext.Msg.YESNO,
+        icon: Ext.Msg.QUESTION,
+        fn: function (btn) {
+          if (btn === "yes") {
+            var store = record.store;
+            record.set("quality_check", result);
+            me.syncStore(store.getId(), true);
+          }
+        },
+      });
+
+    } else {
+      var store = record.store;
+      record.set("quality_check", result);
+      me.syncStore(store.getId(), true);
+    }
+  },
+
+  qualityCheckSelected: function (grid, groupId, result) {
+    var me = this;
+    var store = grid.getStore();
+
+    // Check if for any of the selected lanes 
+    // the loading concentration or % PhiX was
+    // not set
+    var missingInfoItems = store.getGroups().items
+      .find(function (e) {
+        return e.getGroupKey() == groupId
+      }).items
+      .some(function (e) {
+        return !e.get('loading_concentration') ||
+          !e.get('phix')
+      })
+
+    if (missingInfoItems) {
+      Ext.Msg.show({
+        title: "Missing information",
+        message: Ext.String.format(
+          "Do you want to approve these lanes without setting the loading " +
+          "concentration and/or % PhiX for one or more of them?"
+        ),
+        buttons: Ext.Msg.YESNO,
+        icon: Ext.Msg.QUESTION,
+        fn: function (btn) {
+          if (btn === "yes") {
+            store.each(function (item) {
+              if (item.get(store.groupField) === groupId && item.get("selected")) {
+                item.set("quality_check", result);
+              }
+            });
+
+            me.syncStore(store.getId(), true);
+          }
+        },
+      });
+
+    } else {
+      store.each(function (item) {
+        if (item.get(store.groupField) === groupId && item.get("selected")) {
+          item.set("quality_check", result);
+        }
+      });
+
+      me.syncStore(store.getId(), true);
+    }
+
+  },
+
   activateView: function (view) {
     var startMonthPicker = view.down("#start-month-picker");
     var endMonthPicker = view.down("#end-month-picker");
