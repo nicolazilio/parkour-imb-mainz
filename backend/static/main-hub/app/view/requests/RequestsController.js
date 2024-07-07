@@ -266,6 +266,8 @@ Ext.define("MainHub.view.requests.RequestsController", {
 
   approve: function (record, admin_override) {
     var me = this;
+    var view = Ext.getCmp('requests-grid').up('#main-view-detail-wrap');
+    view.setLoading("Approving request...");
     Ext.Ajax.request({
       url: Ext.String.format("api/requests/{0}/approve/", record.get("pk")),
       method: "GET",
@@ -277,6 +279,7 @@ Ext.define("MainHub.view.requests.RequestsController", {
       },
       success: function (response) {
         var obj = Ext.JSON.decode(response.responseText);
+        view.setLoading(false);
 
         if (obj.success) {
           Ext.getStore("requestsStore").reload();
@@ -288,6 +291,7 @@ Ext.define("MainHub.view.requests.RequestsController", {
       },
 
       failure: function (response) {
+        view.setLoading(false);
         var responseText = response.responseText
           ? Ext.JSON.decode(response.responseText)
           : null;
@@ -303,6 +307,8 @@ Ext.define("MainHub.view.requests.RequestsController", {
 
   requestApproval: function (record, admin_override) {
     var me = this;
+    var view = Ext.getCmp('requests-grid').up('#main-view-detail-wrap');
+    view.setLoading("Requesting approval...");
     Ext.Ajax.request({
       url: Ext.String.format(
         "api/requests/{0}/request_approval/",
@@ -317,6 +323,7 @@ Ext.define("MainHub.view.requests.RequestsController", {
       },
       success: function (response) {
         var obj = Ext.JSON.decode(response.responseText);
+        view.setLoading(false);
 
         if (obj.success) {
           Ext.getStore("requestsStore").reload();
@@ -327,6 +334,7 @@ Ext.define("MainHub.view.requests.RequestsController", {
       },
 
       failure: function (response) {
+        view.setLoading(false);
         var responseText = response.responseText
           ? Ext.JSON.decode(response.responseText)
           : null;
@@ -337,45 +345,6 @@ Ext.define("MainHub.view.requests.RequestsController", {
         new Noty({ text: responseText, type: "error" }).show();
         console.error(response);
       },
-    });
-  },
-
-  requestApproval: function (record, admin_override) {
-    var me = this;
-    Ext.Ajax.request({
-      url: Ext.String.format(
-        "api/requests/{0}/request_approval/",
-        record.get("pk")
-      ),
-      method: "GET",
-      scope: me,
-      params: {
-        data: Ext.JSON.encode({
-          override: admin_override,
-        }),
-      },
-      success: function (response) {
-        var obj = Ext.JSON.decode(response.responseText);
-
-        if (obj.success) {
-          Ext.getStore("requestsStore").reload();
-          new Noty({ text: "Approval has been successfully requested" }).show();
-        } else {
-          new Noty({ text: obj.message, type: "error" }).show();
-        }
-      },
-
-      failure: function (response) {
-        var responseText = response.responseText
-          ? Ext.JSON.decode(response.responseText)
-          : null;
-        responseText = responseText.message
-          ? responseText.message
-          : "Unknown error.";
-        responseText = response.statusText ? response.statusText : responseText;
-        new Noty({ text: responseText, type: "error" }).show();
-        console.error(response);
-      }
     });
   },
 
