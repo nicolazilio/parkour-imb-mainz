@@ -101,6 +101,14 @@ class LibraryAdmin(admin.ModelAdmin):
         ),
     )
 
+    actions = (
+        "repool",
+    )
+
     def request_name(self, obj):
         request = obj.request.filter()
         return request[0].name if request else None
+
+    @admin.action(description="Re-pool")
+    def repool(self, request, queryset):
+        queryset.update(status=2, is_pooled=False)

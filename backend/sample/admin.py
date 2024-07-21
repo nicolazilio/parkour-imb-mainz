@@ -142,6 +142,7 @@ class SampleAdmin(admin.ModelAdmin):
     actions = (
         "mark_as_archived",
         "mark_as_non_archived",
+        "repool",
     )
 
     @admin.action(description="Mark as archived")
@@ -151,3 +152,7 @@ class SampleAdmin(admin.ModelAdmin):
     @admin.action(description="Mark as non-archived")
     def mark_as_non_archived(self, request, queryset):
         queryset.update(archived=False)
+
+    @admin.action(description="Re-pool")
+    def repool(self, request, queryset):
+        queryset.update(status=2, is_pooled=False)
