@@ -37,4 +37,4 @@ class LibraryPreparationAdmin(admin.ModelAdmin):
         return obj.sample.request.get().name
 
     def pool(self, obj):
-        return obj.sample.pool.get().name
+        return ', '.join([p.name for p in obj.sample.pool.all()])
