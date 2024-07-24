@@ -78,7 +78,7 @@ Ext.define("MainHub.view.requests.RequestsController", {
         },
         {
           text: "Delete",
-          hidden: record.restrict_permissions,
+          hidden: record.get("restrict_permissions"),
           handler: function () {
             Ext.Msg.show({
               title: "Delete Request",
