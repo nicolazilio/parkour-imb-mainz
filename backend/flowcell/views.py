@@ -312,33 +312,41 @@ class FlowcellViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
 
         def generate_illuminav2_sample_sheet(writer, flowcell, sequencer, lane_ids):
 
+            sample_sheet = flowcell.sample_sheet
+
             # Header
             writer.writerow(['[Header]'] + [''] * 2)
             writer.writerow(['FileFormatVersion', '2'] + [''])
-            writer.writerow(['RunName', flowcell.sample_sheet['Header']['RunName']] + [''])
+            writer.writerow(['RunName', sample_sheet['Header']['RunName']] + [''])
             writer.writerow(['InstrumentPlatform', sequencer.instrument_platform] + [''])
             writer.writerow(['InstrumentType', sequencer.instrument_type] + [''])
             writer.writerow([''] * 3)
 
             # Reads
             writer.writerow(['[Reads]'] + [''] * 2)
-            for k, v in flowcell.sample_sheet['Reads'].items():
+            for k, v in sample_sheet['Reads'].items():
                 writer.writerow([k, v] + [''])
             writer.writerow([''] * 3)
             
             # Sequencing settings
-            if 'Sequencing_Settings' in flowcell.sample_sheet:
+            if 'Sequencing_Settings' in sample_sheet:
                 writer.writerow(['[Sequencing_Settings]'] + [''] * 2)
-                for k, v in flowcell.sample_sheet['Sequencing_Settings'].items():
+                for k, v in sample_sheet['Sequencing_Settings'].items():
                     writer.writerow([k, v] + [''])
                 writer.writerow([''] * 3)
             
             # BCLconvert settings
             writer.writerow(['[BCLConvert_Settings]'] + [''] * 2)
             writer.writerow(['SoftwareVersion', sequencer.bclconvert_version] + [''])
-            if 'BCLConvert_Settings' in flowcell.sample_sheet:
-                for k, v in flowcell.sample_sheet['BCLConvert_Settings'].items():
+            if 'BCLConvert_Settings' in sample_sheet:
+
+                for k, v in sample_sheet['BCLConvert_Settings'].items():
                     writer.writerow([k, v] + [''])
+
+                sample_sheet["BCLConvert_Settings"]["SoftwareVersion"] = flowcell.pool_size.sequencer.bclconvert_version
+                flowcell.sample_sheet = sample_sheet
+                flowcell.save(update_fields=['sample_sheet'])
+
             writer.writerow([''] * 3)
 
             # BCLconvert data
