@@ -167,7 +167,7 @@ class Report(FPDF, HTMLMixin):
         self.set_font(family=self.font, size=8)
         self.set_text_color(r=189, g=189, b=189)
         self.cell(0, 10, "COMPLETE REPORT", align="L")
-        self.cell(0, 10, "Deep Sequencing Facility @ MPI-IE, Freiburg", align="R")
+        self.cell(0, 10, "Genomics Core Facility", align="R")
         self.ln(10)
 
     def footer(self):
@@ -1071,67 +1071,50 @@ class RequestViewSet(viewsets.ModelViewSet):
 
     @action(methods=["get"], detail=True)
     def download_complete_report(self, request, pk=None):
+
         def add_table(document, header, data, contains_comments=True):
 
-            if contains_comments:
+            # Create table
+            # table = document.add_table(rows=1, cols=len(header))
+            table = document.add_table(rows=1, cols=len(header) - 1) if contains_comments \
+                    else document.add_table(rows=1, cols=len(header))
+            hdr_cells = table.rows[0].cells
 
-                # Create table
-                # table = document.add_table(rows=1, cols=len(header))
-                table = document.add_table(rows=1, cols=len(header) - 1)
-                hdr_cells = table.rows[0].cells
-                # for i, h in enumerate(header):
-                for i, h in enumerate(header[:-1]):
-                    hdr_cells[i].text = h
-                for row in data:
-                    row_cells = table.add_row().cells
-                    # for i, value in enumerate(row):
-                    for i, value in enumerate(row[:-1]):
-                        row_cells[i].text = str(value)
-                    # add comment row
+            header_columns = enumerate(header[:-1]) if contains_comments else enumerate(header)
+            for i, h in header_columns:
+                hdr_cells[i].text = h
+
+            for row in data:
+                row_cells = table.add_row().cells
+
+                row_values = enumerate(row[:-1]) if contains_comments else enumerate(row)
+                for j, value in row_values:
+                    row_cells[j].text = str(value)
+                
+                if contains_comments:
                     comment_cells = table.add_row().cells
                     comment_cells[0].merge(comment_cells[-1])
                     comment_cells[0].text = "Comments: " + str(row[-1])
 
-                # Change font size for all cells
-                for row in table.rows:
-                    row.height = Cm(0.7)
-                    for cell in row.cells:
-                        paragraphs = cell.paragraphs
-                        for paragraph in paragraphs:
-                            for run in paragraph.runs:
-                                font = run.font
-                                font.size = Pt(9)
-            else:
-                # Create table
-                table = document.add_table(rows=1, cols=len(header))
-                hdr_cells = table.rows[0].cells
-                for i, h in enumerate(header):
+            # Change font size for all cells
+            for row in table.rows:
+                row.height = Cm(0.7)
+                for cell in row.cells:
+                    paragraphs = cell.paragraphs
+                    for paragraph in paragraphs:
+                        for run in paragraph.runs:
+                            font = run.font
+                            font.size = Pt(7)
 
-                    hdr_cells[i].text = h
-                for row in data:
-                    row_cells = table.add_row().cells
-                    # for i, value in enumerate(row):
-                    for i, value in enumerate(row[:-1]):
-                        row_cells[i].text = str(value)
+        instance = self.get_object()
 
-                # Change font size for all cells
-                for row in table.rows:
-                    row.height = Cm(0.7)
-                    for cell in row.cells:
-                        paragraphs = cell.paragraphs
-                        for paragraph in paragraphs:
-                            for run in paragraph.runs:
-                                font = run.font
-                                font.size = Pt(9)
-
-        f_name = "QC Complete Report.docx"
+        f_name = f"QC Complete Report - {instance.name}.docx"
         response = HttpResponse(
             content_type="application/vnd.openxmlformats"
             + "-officedocument.wordprocessingml.document"
         )
         response["Content-Disposition"] = f'attachment; filename="{f_name}"'
 
-        instance = self.get_object()
         records = sorted(
             list(
                 itertools.chain(
@@ -1151,6 +1134,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         doc.add_heading("Complete Report", 0)
         p = doc.add_paragraph("")
         p.add_run("Date, Request ID").bold = True
+        doc.add_paragraph(f"{instance.create_time.strftime('%d.%m.%Y')}, {instance.name}")
 
         doc.add_paragraph("")
 
@@ -1170,18 +1154,18 @@ class RequestViewSet(viewsets.ModelViewSet):
         doc.add_paragraph(
             "Submitted samples or libraries undergo an "
             + "incoming quality control using appropriate "
-            + "analytical instruments (Fluorometer, Capillary "
-            + "Electrophoresis, qPCR etc). All samples that "
-            + "pass international quality standards are "
+            + "analytical instruments (Qubit, BioAnalyzer, "
+            + "TapeStation, qPCR etc.). All samples that "
+            + "pass accepted quality standards are "
             + "subjected to appropriate library preparation "
             + "methods. Qualified libraries are pooled for "
             + "multiplex sequencing. An Index Generator "
             + "Software assures suitable index design. Pooled "
-            + "libraries are sequenced to reach desired "
-            + "depth/coverage using installed sequencing "
+            + "libraries are sequenced to reach the desired "
+            + "depth/coverage using available sequencing "
             + "instruments. Immediately after the sequencing "
-            + "run bcl to fastq conversion and demultiplexing "
-            + "is done and the user informed."
+            + "run, bcl to fastq conversion and demultiplexing "
+            + "is done and the user is informed."
         )
         doc.add_page_break()
 
@@ -1190,19 +1174,17 @@ class RequestViewSet(viewsets.ModelViewSet):
         doc.add_paragraph()
         doc.add_paragraph(
             "All documented measurements were conducted by "
-            + "the deep sequencing facility, MPI-IE Freiburg. "
-            + "Raw data and reports of fluorometric "
-            + "quantification (Qubit) and size distribution "
-            + "measurements (Fragment Analyzer) can be found as "
-            + "attachment to each request in Parkour "
-            + "(parkour.ie-freiburg.mpg.de)."
+            + "the Genomics Core Facility. "
+            + "Raw data and reports of quantification and size "
+            + "distribution can be found as attachment "
+            + "to each request on Parkour."
         )
         header = [
             "Date",
             "ID",
             "Name",
             "L/S",
-            "Nuc.Type",
+            "Nuc. Type",
             "ng/µl",
             "bp",
             "Comments",
@@ -1228,15 +1210,11 @@ class RequestViewSet(viewsets.ModelViewSet):
         doc.add_heading("Library Construction", 1)
         doc.add_paragraph()
         doc.add_paragraph(
-            "Documentation is only possible if libraries were "
-            + "constructed in the deep sequencing facility, "
-            + "MPI-IE Freiburg. Raw data and reports of "
-            + "fluorometric quantification (Qubit) and size "
-            + "distribution measurements (Fragment Analyzer) "
-            + "can be found as attachment to each request in "
-            + "Parkour (parkour.ie-freiburg.mpg.de). Given "
-            + "Library Preparation Methods are detailed in the "
-            + "appendix."
+              "Documentation is only possible if libraries "
+            + "were constructed in the Genomics Core "
+            + "Facility. Raw data and reports of quantification "
+            + "and size distribution can be found as attachment "
+            + "to each request on Parkour."
         )
         lib_prep_objects = LibraryPreparation.objects.filter(
             archived=False, sample__in=instance.samples.all()
@@ -1282,33 +1260,37 @@ class RequestViewSet(viewsets.ModelViewSet):
             "Name",
             "Pool ID",
             "Flowcell ID",
-            "Sequencer",
-            "Depth (M)",
-            "% Confident off species reads",
+            "Sequencing Kit",
+            "Requested M reads",
+            "Sequenced M reads",
         ]
         data = []
+        sequencers = set()
         try:
-            flowcell = instance.flowcell.get()
+            flowcells = instance.flowcell.all()
         except Exception:
-            flowcell = None
-        if flowcell:
-            pool_ids = ", ".join(
-                sorted(set(flowcell.lanes.values_list("pool__name", flat=True)))
-            )
-            sequences = flowcell.sequences if flowcell.sequences else []
-            conf_reads = {s["barcode"]: s.get("confident_reads", "") for s in sequences}
-            for r in records:
-                row = [
-                    flowcell.create_time.strftime("%d.%m.%Y"),
-                    r.barcode,
-                    r.name,
-                    pool_ids,
-                    flowcell.flowcell_id,
-                    flowcell.sequencer.name,
-                    r.sequencing_depth,
-                    conf_reads.get(r.barcode, ""),
-                ]
-                data.append(row)
+            flowcells = None
+        if flowcells:
+            for flowcell in flowcells:
+                pool_ids = ", ".join(
+                    sorted(set(flowcell.lanes.values_list("pool__name", flat=True)))
+                )
+                sequences = flowcell.sequences if flowcell.sequences else []
+                conf_reads = {s["barcode"]: s.get("reads_pf_sequenced", "") for s in sequences}
+                bcl_version = (flowcell.sample_sheet or {}).get("BCLConvert_Settings", {"SoftwareVersion": "N/A"}).get("SoftwareVersion", "N/A")
+                sequencers.add((flowcell.pool_size.sequencer.name, bcl_version))
+                for r in records:
+                    row = [
+                        flowcell.create_time.strftime("%d.%m.%Y"),
+                        r.barcode,
+                        r.name,
+                        pool_ids,
+                        flowcell.flowcell_id,
+                        flowcell.pool_size.name,
+                        r.sequencing_depth,
+                        f"{conf_reads.get(r.barcode, 0) / 1_000_000: .2f}",
+                    ]
+                    data.append(row)
         add_table(doc, header, data, contains_comments=False)
         doc.add_page_break()
 
@@ -1316,27 +1298,36 @@ class RequestViewSet(viewsets.ModelViewSet):
         doc.add_heading("Acknowledgements", 1)
         doc.add_paragraph()
         doc.add_paragraph(
-            "If data produced in the Deep Sequencing Facility "
-            + "at MPI-IE, Freiburg is published, include an "
-            + "acknowledgement in your paper. Also, review if "
-            + "contributions are substantial and should lead to "
-            + "an authorship of staff of the facility. "
+
+              "The Genomics Core Facility makes use of its "
+            + "technical and human resources in order to carry "
+            + "out your project. A way of recognizing and "
+            + "giving visibility to our work is by acknowledging "
+            + "it in your publications."
         )
-        doc.add_paragraph()
         doc.add_paragraph(
-            "Additionally, let us know of any publications "
+              "If data produced in the Genomics Core Facility "
+            + "is published, include an acknowledgement in "
+            + "your paper. Also, review if contributions are "
+            + "substantial and should lead to an authorship "
+            + "of staff of the facility. "
+        )
+        doc.add_paragraph(
+              "Additionally, let us know of any publications "
             + "involving the facility. Tracking citations and "
             + "publications demonstrate the usefulness of the "
             + "facility as a research resource which is needed "
             + "to obtain further funding."
         )
         doc.add_paragraph()
-        doc.add_paragraph("Example acknowledgement")
+        doc.add_heading("Example acknowledgement", 2)
         doc.add_paragraph()
         doc.add_paragraph(
-            "We thank the Deep Sequencing Facility @ MPI-IE "
-            + "Freiburg, for performance of quality controls, "
-            + "library construction and Illumina sequencing."
+              "We thank the Genomics Core Facility for their "
+            + "support and wish to express our appreciation to "
+            + "(respective name of the GCF member(s) in charge "
+            + "of the project) for her/his assistance with the "
+            + "NGS experiments."
         )
         doc.add_page_break()
 
@@ -1344,10 +1335,48 @@ class RequestViewSet(viewsets.ModelViewSet):
         doc.add_heading("Appendix", 1)
         doc.add_paragraph()
         doc.add_paragraph(
-            "Detailed list of different library preparation "
-            + "protocols, sequencing devices and installed "
-            + "software"
+                "Detailed list of library preparation protocols, "
+              + "sequencing devices and software."
         )
+
+        library_protocols = LibraryProtocol.objects.filter(sample__in=instance.samples.all()).distinct()
+        if library_protocols.exists():
+            doc.add_paragraph()
+            doc.add_heading("Library preparation protocols", 2)
+            doc.add_paragraph()
+            header = [
+                "Name",
+                "Nuc. Type",
+                "Provider",
+                "Catalog",
+            ]
+            data = []
+            for r in library_protocols:
+                row = [
+                    r.name,
+                    r.type,
+                    r.provider,
+                    r.catalog,
+                    ]
+                data.append(row)
+            add_table(doc, header, data, contains_comments=False)
+
+        if sequencers:
+            doc.add_paragraph()
+            doc.add_heading("Sequencer", 2)
+            doc.add_paragraph()
+            header = [
+                "Name",
+                "BCLConvert Version",
+            ]
+            data = []
+            for r in sequencers:
+                row = [
+                    r[0],
+                    r[1]
+                    ]
+                data.append(row)
+            add_table(doc, header, data, contains_comments=False)
 
         doc.save(response)
         return response
