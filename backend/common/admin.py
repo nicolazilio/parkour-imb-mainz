@@ -125,17 +125,7 @@ class OrganizationAdmin(admin.ModelAdmin):
         queryset.update(archived=False)
 
 
-# class CheckUserEmailExtension:
-#     def clean_email(self):
-#         email = self.cleaned_data.get("email")
-
-#         if email:
-#             if 'imb.de' in email:
-#                 raise forms.ValidationError("Use the full email extension imb-mainz.de, not just imb.de")
-#         return email
-
-
-class UserCreationForm(UserCreationForm): #, CheckUserEmailExtension):
+class UserCreationForm(UserCreationForm):
     """
     A UserCreationForm with optional password inputs.
     """
@@ -149,17 +139,6 @@ class UserCreationForm(UserCreationForm): #, CheckUserEmailExtension):
         self.fields["password1"].widget.attrs["autocomplete"] = "off"
         self.fields["password2"].widget.attrs["autocomplete"] = "off"
 
-    # class Meta:
-    #     model = User
-    #     fields = (
-    #         'first_name',
-    #         'last_name',
-    #         'email',
-    #         'is_pi',
-    #         'password1',
-    #         'password2',
-    #     )
-
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
         password2 = super().clean_password2()
@@ -167,9 +146,6 @@ class UserCreationForm(UserCreationForm): #, CheckUserEmailExtension):
             raise forms.ValidationError("Fill out both fields")
         return password2
 
-
-# class UserChangeForm(UserChangeForm, CheckUserEmailExtension):
-#     pass
 
 class PiFilter(SimpleListFilter):
     title = 'PI' # or use _('country') for translated title
@@ -296,7 +272,7 @@ class UserAdmin(NamedUserAdmin):
 
     def add_view(self, request, extra_context=None):
         self.inlines = []
-        return super().add_view(request)
+        return super().add_view(request, extra_context)
 
     def change_view(self, request, object_id, extra_context=None):
         
@@ -399,7 +375,7 @@ class UserAdmin(NamedUserAdmin):
         if obj.oidc_id:
             self.readonly_fields = user_fields
 
-        return super().change_view(request, object_id)
+        return super().change_view(request, object_id, extra_context)
 
     def get_search_results(self, request, queryset, search_term):
 
