@@ -270,11 +270,11 @@ class UserAdmin(NamedUserAdmin):
         return ', '.join(obj.groups.values_list('name', flat=True))
     user_groups.short_description = 'Groups'
 
-    def add_view(self, request, extra_context=None):
+    def add_view(self, request, form_url="", extra_context=None):
         self.inlines = []
-        return super().add_view(request, extra_context)
+        return super().add_view(request, form_url, extra_context)
 
-    def change_view(self, request, object_id, extra_context=None):
+    def change_view(self, request, object_id, form_url="", extra_context=None):
         
         self.inlines = []
         user_fields = []
@@ -375,7 +375,7 @@ class UserAdmin(NamedUserAdmin):
         if obj.oidc_id:
             self.readonly_fields = user_fields
 
-        return super().change_view(request, object_id, extra_context)
+        return super().change_view(request, object_id, form_url, extra_context=None)
 
     def get_search_results(self, request, queryset, search_term):
 
