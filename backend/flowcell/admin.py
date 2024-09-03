@@ -1,7 +1,12 @@
+from django.http import HttpRequest
+from django.http.response import HttpResponse
 from common.admin import ArchivedFilter
 from django.conf import settings
+from django.templatetags.static import static
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.contrib import admin
-from flowcell.models import Flowcell, Sequencer
+from flowcell.models import Flowcell, Sequencer, Lane
 from index_generator.models import PoolSize
 
 
@@ -19,6 +24,7 @@ class LaneInline(admin.TabularInline):
         "loading_concentration",
         "phix",
         "completed",
+        "edit_link",
     )
     readonly_fields = (
         "name",
@@ -26,6 +32,7 @@ class LaneInline(admin.TabularInline):
         "loading_concentration",
         "phix",
         "completed",
+        "edit_link",
     )
 
     @admin.display(description="Name")
@@ -50,6 +57,17 @@ class LaneInline(admin.TabularInline):
     )
     def completed(self, instance):
         return instance.lane.completed
+
+    @admin.display(description="")
+    def edit_link(self, instance):
+
+        lane = instance.lane
+        url = reverse(f'admin:{lane._meta.app_label}_{lane._meta.model_name}_change', args=[lane.id]) + \
+              '?_to_field=id&_popup=1'
+        icon_changelink_url = static("admin/img/icon-changelink.svg")
+        return mark_safe(f'<a id="lane-{lane.id}" class="related-widget-wrapper-link '
+                         f'add-related" data-popup="yes" href="{url}"><img src='
+                         f'{icon_changelink_url} alt="Change"></a>')
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -111,3 +129,28 @@ class FlowcellAdmin(admin.ModelAdmin):
     @admin.action(description="Mark as non-archived")
     def mark_as_non_archived(self, request, queryset):
         queryset.update(archived=False)
+
+
+@admin.register(Lane)
+class LaneAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "name",
+        "pool",
+        "loading_concentration",
+        "phix",
+        "completed",
+    )
+
+    fields = (
+        "name",
+        "pool",
+        "loading_concentration",
+        "phix",
+        "completed",
+    )
+
+    readonly_fields = ('name', 'pool',)
+
+    def has_module_permission(self, request):
+        return False
