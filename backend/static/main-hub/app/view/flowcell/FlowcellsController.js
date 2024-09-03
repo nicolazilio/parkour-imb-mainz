@@ -58,22 +58,47 @@ Ext.define("MainHub.view.flowcell.FlowcellsController", {
     var phixPercentage = record.get('phix');
 
     if (!loadingConcentration || !phixPercentage) {
-      Ext.Msg.show({
-        title: "Missing information",
-        message: Ext.String.format(
-          "Do you want to approve this lane without setting its loading " +
-          "concentration and/or % PhiX?"
-        ),
-        buttons: Ext.Msg.YESNO,
-        icon: Ext.Msg.QUESTION,
-        fn: function (btn) {
-          if (btn === "yes") {
-            var store = record.store;
-            record.set("quality_check", result);
-            me.syncStore(store.getId(), true);
-          }
-        },
-      });
+
+      // Gently remind that entering Loading concentration and % PhiX
+      // is useful
+      // Ext.Msg.show({
+      //   title: "Missing information",
+      //   message: Ext.String.format(
+      //     "Do you want to approve this lane without setting its loading " +
+      //     "concentration and/or % PhiX?"
+      //   ),
+      //   buttons: Ext.Msg.YESNO,
+      //   icon: Ext.Msg.QUESTION,
+      //   fn: function (btn) {
+      //     if (btn === "yes") {
+      //       var store = record.store;
+      //       record.set("quality_check", result);
+      //       me.syncStore(store.getId(), true);
+      //     }
+      //   },
+      // });
+
+      // Temporarily (?) force Loading concentration and % PhiX
+      // to be entered
+
+      new Noty({
+        text: 'Loading concentration and % PhiX must be set ' +
+              'before marking the lane as complete.',
+        type: "error",
+      }).show();
+      var gridView = Ext.getCmp('flowcells-grid').getView();
+      var gridColumns = gridView.getGridColumns();
+
+      ['loading_concentration', 'phix'].forEach(function (dataIndex) {
+        if (!record.get(dataIndex)) {
+          var column = gridColumns.find(function (c) { return c.dataIndex === dataIndex })
+          var cell = gridView.getCell(record, column);
+          cell.addCls(" invalid-record");
+        }
+
+      })
+
+      return false;
 
     } else {
       var store = record.store;
@@ -93,32 +118,52 @@ Ext.define("MainHub.view.flowcell.FlowcellsController", {
       .find(function (e) {
         return e.getGroupKey() == groupId
       }).items
-      .some(function (e) {
+      .filter(function (e) {
         return !e.get('loading_concentration') ||
           !e.get('phix')
       })
 
-    if (missingInfoItems) {
-      Ext.Msg.show({
-        title: "Missing information",
-        message: Ext.String.format(
-          "Do you want to approve these lanes without setting the loading " +
-          "concentration and/or % PhiX for one or more of them?"
-        ),
-        buttons: Ext.Msg.YESNO,
-        icon: Ext.Msg.QUESTION,
-        fn: function (btn) {
-          if (btn === "yes") {
-            store.each(function (item) {
-              if (item.get(store.groupField) === groupId && item.get("selected")) {
-                item.set("quality_check", result);
-              }
-            });
+    if (missingInfoItems.length > 0) {
+      // Ext.Msg.show({
+      //   title: "Missing information",
+      //   message: Ext.String.format(
+      //     "Do you want to approve these lanes without setting the loading " +
+      //     "concentration and/or % PhiX for one or more of them?"
+      //   ),
+      //   buttons: Ext.Msg.YESNO,
+      //   icon: Ext.Msg.QUESTION,
+      //   fn: function (btn) {
+      //     if (btn === "yes") {
+      //       store.each(function (item) {
+      //         if (item.get(store.groupField) === groupId && item.get("selected")) {
+      //           item.set("quality_check", result);
+      //         }
+      //       });
 
-            me.syncStore(store.getId(), true);
+      //       me.syncStore(store.getId(), true);
+      //     }
+      //   },
+      // });
+
+      // Temporarily (?) force Loading concentration and % PhiX
+      // to be entered
+
+      new Noty({
+        text: 'Loading concentration and % PhiX must be set ' +
+          'before marking the lanes as complete.',
+        type: "error",
+      }).show();
+
+      missingInfoItems.forEach(function (e) {
+        ['loading_concentration', 'phix'].forEach(function (dataIndex) {
+          if (!record.get(dataIndex)) {
+            var column = gridColumns.find(function (c) { return c.dataIndex === dataIndex })
+            var cell = gridView.getCell(record, column);
+            cell.addCls(" invalid-record");
           }
-        },
-      });
+        })
+      })
+      return false;
 
     } else {
       store.each(function (item) {
