@@ -52,8 +52,8 @@ jobs:
       - name: Upload Python requirements
         uses: actions/upload-artifact@v4
         with:
-          name: python-requirements
-          path: backend/requirements/
+          name: python-requirements-${{ matrix.python-version }}
+          path: backend/requirements/${{ matrix.python-version }}
           retention-days: 5
 
   vuejs:
@@ -83,17 +83,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         
-      - name: Download Python requirements
-        uses: actions/download-artifact@v4
-        with:
-          name: python-requirements
-          path: backend/requirements/
-
       - name: Download VueJS package.json
         uses: actions/download-artifact@v4
         with:
           name: package-json
           path: frontend/
+      
+      - name: Download Python requirements
+        uses: actions/download-artifact@v4
+        with:
+          pattern: python-requirements-*
+          path: temp/
+
+      - name: Move Python requirements to correct location
+        run: |
+          for version in $(find temp/ -maxdepth 1 -type d -name "python-requirements-*" | sed 's/.*python-requirements-//'); do
+            mkdir -p backend/requirements/${version}
+            mv temp/python-requirements-${version}/* backend/requirements/${version}/
+          done
 
       - name: Create Combined PR
         uses: peter-evans/create-pull-request@v6
