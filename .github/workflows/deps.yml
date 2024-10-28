@@ -6,6 +6,10 @@ on:
     # Every Monday, 7:30 AM (Berlin)
     - cron: "30 5 * * 1"
 
+# Artifacts' retention is 5 days, and stalebot.yml marks as stale and closes PRs after 3+2 days
+# These jobs are re-run weekly anyway, so if PRs are unnattended the package.json and requirements.txt
+# files will receive same updates again in a week.
+
 jobs:
   python:
     env:
@@ -45,6 +49,13 @@ jobs:
       - name: Test installation
         run: uv pip install -r backend/requirements/${{ matrix.python-version }}/testing.txt
 
+      - name: Upload Python requirements
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-requirements
+          path: backend/requirements/
+          retention-days: 5
+
   vuejs:
     if: github.repository == 'maxplanck-ie/parkour2'
     runs-on: ubuntu-latest
@@ -59,12 +70,31 @@ jobs:
       - run: npm install -g npm-check-updates
       - run: cd frontend && ncu -u
 
+      - name: Upload VueJS package.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-json
+          path: frontend/package.json
+          retention-days: 5
+
   create-pr:
     needs: [python, vuejs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         
+      - name: Download Python requirements
+        uses: actions/download-artifact@v4
+        with:
+          name: python-requirements
+          path: backend/requirements/
+
+      - name: Download VueJS package.json
+        uses: actions/download-artifact@v4
+        with:
+          name: package-json
+          path: frontend/
+
       - name: Create Combined PR
         uses: peter-evans/create-pull-request@v6
         with:
