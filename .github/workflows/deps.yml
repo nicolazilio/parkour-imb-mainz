@@ -8,6 +8,8 @@ on:
 
 jobs:
   python:
+    env:
+      UV_SYSTEM_PYTHON: 1
     if: github.repository == 'maxplanck-ie/parkour2'
     runs-on: ubuntu-latest
     strategy:
@@ -39,10 +41,8 @@ jobs:
             backend/requirements/dev.in -c ${this}/base.txt -o ${this}/dev.txt
           uv pip compile --no-progress --universal --python-version ${{ matrix.python-version }} \
             backend/requirements/testing.in -c ${this}/dev.txt -o ${this}/testing.txt
-        env:
-          UV_SYSTEM_PYTHON: 1
       - name: Test installation
-        run: uv pip install --system -r backend/requirements/${{ matrix.python-version }}/testing.txt
+        run: uv pip install -r backend/requirements/${{ matrix.python-version }}/testing.txt
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
