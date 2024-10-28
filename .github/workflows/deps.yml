@@ -48,11 +48,8 @@ jobs:
   vuejs:
     if: github.repository == 'maxplanck-ie/parkour2'
     runs-on: ubuntu-latest
-    needs: python
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
 
       - name: Frontend Update
         uses: actions/setup-node@v4
@@ -61,7 +58,13 @@ jobs:
 
       - run: npm install -g npm-check-updates
       - run: cd frontend && ncu -u
-      
+
+  create-pr:
+    needs: [python, vuejs]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        
       - name: Create Combined PR
         uses: peter-evans/create-pull-request@v6
         with:
