@@ -436,7 +436,7 @@ class FlowcellAnalysisViewSet(viewsets.ViewSet):
                     item.name,
                     item.library_type.name,
                     item.library_protocol.name,
-                    item.organism.name,
+                    item.organism.alias_label or item.organism.name,
                     ind_type,
                     item.sequencing_depth,
                 ]
