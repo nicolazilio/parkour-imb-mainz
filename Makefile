@@ -426,4 +426,10 @@ disable-explorer:
 # 	@export OPENROUTER_API_KEY=$$(grep OPENROUTER_API_KEY misc/parkour.env.ignore | cut -d'=' -f2)
 # 	@cd backend/ && aider --subtree-only --model openrouter/google/gemma-2-9b-it:free
 
+deploy2dev:
+	@git diff --cached > test.patch && scp test.patch root@parkour-dev:~
+	@ssh root@parkour-dev "cd parkour2 && \
+		/root/anaconda/bin/git restore . && \
+		/root/anaconda/bin/git apply ~/test.patch"
+
 # Remember: (docker compose run == docker exec) != docker run
