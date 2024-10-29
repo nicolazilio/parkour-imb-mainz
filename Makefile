@@ -427,7 +427,7 @@ disable-explorer:
 # 	@cd backend/ && aider --subtree-only --model openrouter/google/gemma-2-9b-it:free
 
 deploy2dev:
-	@git diff --cached > test.patch && scp test.patch root@parkour-dev:~
+	@git diff > test.patch && scp test.patch root@parkour-dev:~
 	@ssh root@parkour-dev "cd parkour2 && \
 		/root/anaconda/bin/git restore . && \
 		/root/anaconda/bin/git apply ~/test.patch"
