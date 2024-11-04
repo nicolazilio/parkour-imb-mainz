@@ -17,6 +17,7 @@ def get_deleted_pi():
 class Organization(models.Model):
     name = models.CharField("Name", max_length=100)
     archived = models.BooleanField("Archived", default=False)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -29,6 +30,7 @@ class PrincipalInvestigator(models.Model):
     )
     email = models.EmailField("E-Mail Address", default="Unset")
     archived = models.BooleanField("Archived", default=False)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Principal Investigator"
@@ -42,6 +44,7 @@ class PrincipalInvestigator(models.Model):
 class CostUnit(models.Model):
     name = models.CharField("Name", max_length=100)
     archived = models.BooleanField("Archived", default=False)
+    history = HistoricalRecords()
     pi = models.ForeignKey(
         PrincipalInvestigator,
         verbose_name="Principal Investigator",
@@ -180,7 +183,6 @@ class Duty(models.Model):
         blank=True,
     )
     archived = models.BooleanField("Archived", default=False)
-
     history = HistoricalRecords()
 
     class Meta:

@@ -78,7 +78,7 @@ class CostUnitInline(admin.TabularInline):
 
 
 @admin.register(PrincipalInvestigator)
-class PrincipalInvestigatorAdmin(admin.ModelAdmin):
+class PrincipalInvestigatorAdmin(SimpleHistoryAdmin):
     list_display = ("name", "organization", "archived")
     search_fields = (
         "name",
@@ -102,12 +102,12 @@ class PrincipalInvestigatorAdmin(admin.ModelAdmin):
 
 
 @admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
+class OrganizationAdmin(SimpleHistoryAdmin):
     pass
 
 
 @admin.register(CostUnit)
-class CostUnitAdmin(admin.ModelAdmin):
+class CostUnitAdmin(SimpleHistoryAdmin):
     list_display = (
         "name",
         "pi",
