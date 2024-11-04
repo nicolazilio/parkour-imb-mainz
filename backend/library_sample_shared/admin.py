@@ -29,7 +29,7 @@ from .models import (
 
 @admin.register(Organism)
 class OrganismAdmin(admin.ModelAdmin):
-    list_display = ("name", "scientific_name", "taxon_id", "archived")
+    list_display = ("name", "label", "yaml")
 
     list_filter = (ArchivedFilter,)
 

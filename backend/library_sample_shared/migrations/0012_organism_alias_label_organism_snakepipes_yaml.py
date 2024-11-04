@@ -14,19 +14,19 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="organism",
-            name="alias_label",
+            name="label",
             field=models.CharField(
                 blank=True,
                 max_length=25,
                 null=True,
-                verbose_name="For data directories",
+                verbose_name="Label",
             ),
         ),
         migrations.AddField(
             model_name="organism",
-            name="snakepipes_yaml",
+            name="yaml",
             field=models.CharField(
-                blank=True, max_length=200, null=True, verbose_name="SnakePipes YAML"
+                blank=True, max_length=200, null=True, verbose_name="YAML"
             ),
         ),
     ]

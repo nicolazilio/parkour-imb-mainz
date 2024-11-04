@@ -11,12 +11,8 @@ AlphaValidator = RegexValidator(
 
 class Organism(models.Model):
     name = models.CharField("Name", max_length=100)
-    alias_label = models.CharField(
-        "For data directories", max_length=25, null=True, blank=True
-    )
-    snakepipes_yaml = models.CharField(
-        "SnakePipes YAML", max_length=200, null=True, blank=True
-    )
+    label = models.CharField("Label", max_length=25, null=True, blank=True)
+    yaml = models.CharField("YAML", max_length=200, null=True, blank=True)
     scientific_name = models.CharField(
         "Scientific Name",
         max_length=150,

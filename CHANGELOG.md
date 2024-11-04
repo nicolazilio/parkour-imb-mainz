@@ -3,6 +3,13 @@
 ??.??.??
 ========
 
+Breaking changes:
+
+- API endpoint `api/analysis_list/analysis_list/?flowcell_id={FCID}` was updated to return a list of 3 strings representing the organism (name, which is the old string returned until now, plus: label for naming downstream analysis directories, and a yaml key or filepath for snakePipes.)
+
+Non-breaking changes:
+
+- Follow-up to the organisms' name changes: we added 'label' and 'yaml' fields to the model. They are very much like name, but curated for downstream analysis needs that were before handled over there (dissectBCL, BigRedButton, and nanoporeReads_dataTransfer.)
 - **We're now running on Python 3.12** (its CI jobs were reintroduced), and we have also added support for Python 3.13.
 - We have switched over to `uv` everywhere (Makefile, Docker, CI) instead of plain `pip-tools`.
 - Replaced `isort` and `black` with `ruff` (CI).
