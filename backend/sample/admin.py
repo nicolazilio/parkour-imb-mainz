@@ -2,6 +2,7 @@ from common.admin import ArchivedFilter
 from django.conf import settings
 from django.contrib import admin
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import NucleicAcidType, Sample
 
@@ -27,7 +28,7 @@ class NucleicAcidTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(Sample)
-class SampleAdmin(admin.ModelAdmin):
+class SampleAdmin(SimpleHistoryAdmin):
     list_display = (
         "name",
         "barcode",
