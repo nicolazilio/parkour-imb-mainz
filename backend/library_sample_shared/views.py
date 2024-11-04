@@ -26,7 +26,6 @@ from .serializers import (
     IndexTypeSerializer,
     LibraryProtocolSerializer,
     LibraryTypeSerializer,
-    OrganismFullSerializer,
     OrganismSerializer,
     ReadLengthSerializer,
 )
@@ -63,13 +62,6 @@ class MoveOtherMixin:
             data.append(data.pop(index))
 
         return data
-
-
-class OrganismFullViewSet(MoveOtherMixin, viewsets.ReadOnlyModelViewSet):
-    """Get the list of organisms with all of their fields. To be used by pipelines instead of UI"""
-
-    queryset = Organism.objects.order_by("name")
-    serializer_class = OrganismFullSerializer
 
 
 class OrganismViewSet(MoveOtherMixin, viewsets.ReadOnlyModelViewSet):

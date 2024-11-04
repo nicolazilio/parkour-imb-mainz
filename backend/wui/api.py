@@ -26,7 +26,6 @@ from library_sample_shared.views import (
     LibraryProtocolInvoicingViewSet,
     LibraryProtocolViewSet,
     LibraryTypeViewSet,
-    OrganismFullViewSet,
     OrganismViewSet,
     ReadLengthInvoicingViewSet,
     ReadLengthViewSet,
@@ -44,7 +43,6 @@ router.register(r"duties", DutyViewSet, basename="duties")
 router.register(r"requests", RequestViewSet, basename="request")
 router.register(r"approve", ApproveViewSet, basename="approve")
 router.register(r"cost_units", CostUnitsViewSet, basename="cost-units")
-router.register(r"organisms_full", OrganismFullViewSet, basename="organism-full")
 router.register(r"organisms", OrganismViewSet, basename="organism")
 router.register(r"read_lengths", ReadLengthViewSet, basename="read-length")
 router.register(

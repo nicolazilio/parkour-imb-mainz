@@ -16,12 +16,6 @@ from .models import (
 )
 
 
-class OrganismFullSerializer(ModelSerializer):
-    class Meta:
-        model = Organism
-        fields = "__all__"
-
-
 class OrganismSerializer(ModelSerializer):
     class Meta:
         model = Organism
