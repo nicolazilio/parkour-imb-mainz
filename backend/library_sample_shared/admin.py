@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import path, resolve
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from simple_history.admin import SimpleHistoryAdmin
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from openpyxl import load_workbook
@@ -28,7 +29,7 @@ from .models import (
 
 
 @admin.register(Organism)
-class OrganismAdmin(admin.ModelAdmin):
+class OrganismAdmin(SimpleHistoryAdmin):
     list_display = ("name", "label", "yaml")
 
     list_filter = (ArchivedFilter,)
@@ -445,7 +446,7 @@ class IndexI7Admin(ImportExportModelAdmin):
 
 
 @admin.register(LibraryProtocol)
-class LibraryProtocolAdmin(admin.ModelAdmin):
+class LibraryProtocolAdmin(SimpleHistoryAdmin):
     list_display = (
         "name",
         "type",
@@ -477,7 +478,7 @@ class LibraryProtocolAdmin(admin.ModelAdmin):
 
 
 @admin.register(LibraryType)
-class LibraryTypeAdmin(admin.ModelAdmin):
+class LibraryTypeAdmin(SimpleHistoryAdmin):
     filter_horizontal = ("library_protocol",)
     list_display = ("name", "archived")
     list_filter = (ArchivedFilter,)
