@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from library.models import Library
 from sample.models import Sample
+from simple_history.models import HistoricalRecords
 
 
 def get_sentinel_user():
@@ -101,6 +102,8 @@ class Request(DateTimeMixin):
     )
 
     archived = models.BooleanField("Archived", default=False)
+
+    history = HistoricalRecords()
 
     filepaths = models.JSONField(null=False, default=filepaths_default)
 
