@@ -14,10 +14,13 @@ Non-breaking changes:
 - **We're now running on Python 3.12** (its CI jobs were reintroduced), and we have also added support for Python 3.13.
 - We have switched over to `uv` everywhere (Makefile, Docker, CI) instead of plain `pip-tools`.
 - Replaced `isort` and `black` with `ruff` (CI).
-- Added history tracking to some of our key underlying models (e.g. Duties, Requests, Samples, Libraries, etc.) It's highly recommended to run `manage.py populate_history --auto` after updating, to get a baseline on the current state of such records.
 - Added a 'Get Flowcell' context menu for staff users to find where each sample is being sequenced.
 - Fixed a bunch of typos.
+- Added history tracking to some of our key underlying models (e.g. Duties, Requests, Samples, Libraries, Organisms, Library Type, Library Protocol, Organization, PI, and CostUnit). See note below.
 - ...
+
+> [!NOTE]
+> It's highly recommended to run `manage.py populate_history --auto` after updating, to get a baseline on the current state of such records. This will populate initial history entries for all models that have been enabled for history tracking.
 
 
 24.10.18
