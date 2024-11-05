@@ -19,9 +19,6 @@ Non-breaking changes:
 - Added history tracking to some of our key underlying models (e.g. Duties, Requests, Samples, Libraries, Organisms, Library Type, Library Protocol, Organization, PI, and CostUnit). See note below.
 - ...
 
-> [!NOTE]
-> It's highly recommended to run `manage.py populate_history --auto` after updating, to get a baseline on the current state of such records. This will populate initial history entries for all models that have been enabled for history tracking.
-
 
 24.10.18
 ========
