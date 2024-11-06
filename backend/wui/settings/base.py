@@ -1,6 +1,7 @@
 import os
 
 import dj_database_url
+import requests
 
 BASE_DIR = os.path.dirname(
     os.path.dirname(
@@ -55,8 +56,8 @@ INSTALLED_APPS = [
     "django_admin_listfilter_dropdown",
     "django_extensions",
     "import_export",
-    'constance',
-    'constance.backends.database',
+    "constance",
+    "constance.backends.database",
     "django_linear_migrations",
     "common",
     "library_sample_shared",
@@ -73,7 +74,7 @@ INSTALLED_APPS = [
     "usage",
     "stats",
     "metadata_exporter",
-    'mozilla_django_oidc',
+    "mozilla_django_oidc",
     "drf_spectacular",
 ]
 
@@ -86,12 +87,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "extra.middleware.ErrorMiddleware",
-    'mozilla_django_oidc.middleware.SessionRefresh',
+    "mozilla_django_oidc.middleware.SessionRefresh",
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'common.oidc.ParkourOIDCAuthenticationBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    "common.oidc.ParkourOIDCAuthenticationBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 ROOT_URLCONF = "wui.urls"
@@ -151,7 +152,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
     {
-        'NAME': 'wui.password_validators.CapitalSymbolPasswordValidator',
+        "NAME": "wui.password_validators.CapitalSymbolPasswordValidator",
     },
 ]
 
@@ -281,55 +282,100 @@ SETUP_ADMIN_EMAIL = os.environ.get("SETUP_ADMIN_EMAIL", "")
 SETUP_ADMIN_PASSWORD = os.environ.get("SETUP_ADMIN_PASSWORD", None)
 
 # OIDC
-OIDC_ENABLE = os.environ.get("OIDC_ENABLE", 'False') == 'True'
-OIDC_PROVIDER_NAME = os.environ.get("OIDC_PROVIDER_NAME")
-OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID")
-OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET")
-OIDC_RP_SIGN_ALGO = os.environ.get("OIDC_RP_SIGN_ALGO")
-OIDC_OP_JWKS_ENDPOINT = os.environ.get("OIDC_OP_JWKS_ENDPOINT")
-OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get("OIDC_OP_AUTHORIZATION_ENDPOINT")
-OIDC_OP_TOKEN_ENDPOINT = os.environ.get("OIDC_OP_TOKEN_ENDPOINT")
-OIDC_OP_USER_ENDPOINT = os.environ.get("OIDC_OP_USER_ENDPOINT")
-OIDC_RP_SCOPES = 'openid email name groups'
-OIDC_RENEW_ID_TOKEN_EXPIRY_SECONDS = 86400 # 24 h
 
-OIDC_ALLOWED_GROUPS = os.environ.get("OIDC_ALLOWED_GROUPS", '')
-OIDC_GENOMICSCF_GROUPS = os.environ.get("OIDC_GENOMICSCF_GROUPS", '')
-OIDC_BIOINFOCF_GROUPS = os.environ.get("OIDC_BIOINFOCF_GROUPS", '')
-OIDC_ALLOWED_USER_EMAILS = os.environ.get("OIDC_ALLOWED_USER_EMAILS", '')
+
+def discover_oidc(discovery_url: str) -> dict:
+    """
+    Performs OpenID Connect discovery to retrieve the provider configuration.
+    Plainly stolen from https://github.com/mozilla/mozilla-django-oidc/issues/414
+    """
+
+    response = requests.get(discovery_url)
+    if response.status_code != 200:
+        raise ValueError("Failed to retrieve provider configuration.")
+
+    provider_config = response.json()
+
+    # Extract endpoint URLs from provider configuration
+    return {
+        "authorization_endpoint": provider_config["authorization_endpoint"],
+        "token_endpoint": provider_config["token_endpoint"],
+        "userinfo_endpoint": provider_config["userinfo_endpoint"],
+        "jwks_uri": provider_config["jwks_uri"],
+    }
+
+
+OIDC_ENABLE = os.environ.get("OIDC_ENABLE", "False") == "True"
+
+if OIDC_ENABLE:
+
+    try:
+        discovery_info = discover_oidc(os.environ.get("OIDC_OP_DISCOVERY_ENDPOINT"))
+        OIDC_OP_AUTHORIZATION_ENDPOINT = discovery_info["authorization_endpoint"]
+        OIDC_OP_TOKEN_ENDPOINT = discovery_info["token_endpoint"]
+        OIDC_OP_USER_ENDPOINT = discovery_info["userinfo_endpoint"]
+        OIDC_OP_JWKS_ENDPOINT = discovery_info["jwks_uri"]
+    except:
+        OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get(
+            "OIDC_OP_AUTHORIZATION_ENDPOINT"
+        )
+        OIDC_OP_TOKEN_ENDPOINT = os.environ.get("OIDC_OP_TOKEN_ENDPOINT")
+        OIDC_OP_USER_ENDPOINT = os.environ.get("OIDC_OP_USER_ENDPOINT")
+        OIDC_OP_JWKS_ENDPOINT = os.environ.get("OIDC_OP_JWKS_ENDPOINT")
+
+    OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID")
+    OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET")
+    OIDC_RP_SIGN_ALGO = os.environ.get("OIDC_RP_SIGN_ALGO")
+    OIDC_RP_SCOPES = "openid email name groups"
+    OIDC_RENEW_ID_TOKEN_EXPIRY_SECONDS = 86400  # 24 h
+
+OIDC_PROVIDER_NAME = os.environ.get("OIDC_PROVIDER_NAME")
+OIDC_ALLOWED_GROUPS = os.environ.get("OIDC_ALLOWED_GROUPS", "")
+OIDC_GENOMICSCF_GROUPS = os.environ.get("OIDC_GENOMICSCF_GROUPS", "")
+OIDC_BIOINFOCF_GROUPS = os.environ.get("OIDC_BIOINFOCF_GROUPS", "")
+OIDC_ALLOWED_USER_EMAILS = os.environ.get("OIDC_ALLOWED_USER_EMAILS", "")
 
 # Costance
-STAFF_EMAIL_ADDRESS = os.environ.get("STAFF_EMAIL_ADDRESS", '')
-DOCUMENTATION_URL = os.environ.get("DOCUMENTATION_URL", '')
-CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+STAFF_EMAIL_ADDRESS = os.environ.get("STAFF_EMAIL_ADDRESS", "")
+DOCUMENTATION_URL = os.environ.get("DOCUMENTATION_URL", "")
+CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"
 CONSTANCE_SUPERUSER_ONLY = True
-CONSTANCE_CONFIG = {'STAFF_EMAIL_ADDRESS': (STAFF_EMAIL_ADDRESS,
-                                            'Shared email address of the the genomics laboratory',
-                                            str),
-                    'OIDC_ALLOWED_GROUPS': (OIDC_ALLOWED_GROUPS,
-                                            'Comma-separated list of LDAP group(s) that are allowed to log in Parkour. '
-                                            'Lower case, no spaces',
-                                            str),
-                    'OIDC_ALLOWED_USER_EMAILS': (OIDC_ALLOWED_USER_EMAILS,
-                                            'Comma-separated list of email addresses that are allowed to log in Parkour. '
-                                            'Lower case, no spaces',
-                                            str),
-                    'OIDC_GENOMICSCF_GROUPS': (OIDC_GENOMICSCF_GROUPS,
-                                               'Comma-separated list of LDAP group(s) for staff of the genomics laboratory. '
-                                               'Lower case, no spaces',
-                                               str),
-                    'OIDC_BIOINFOCF_GROUPS': (OIDC_BIOINFOCF_GROUPS,
-                                              'Comma-separated list of LDAP group(s) for staff of the bioinformatics group. '
-                                              'Lower case, no spaces',
-                                              str),
-                    'DOCUMENTATION_URL': (DOCUMENTATION_URL,
-                                          "Link for Parkour's manual",
-                                          str)
-                    }
+CONSTANCE_CONFIG = {
+    "STAFF_EMAIL_ADDRESS": (
+        STAFF_EMAIL_ADDRESS,
+        "Shared email address of the the genomics laboratory",
+        str,
+    ),
+    "OIDC_ALLOWED_GROUPS": (
+        OIDC_ALLOWED_GROUPS,
+        "Comma-separated list of LDAP group(s) that are allowed to log in Parkour. "
+        "Lower case, no spaces",
+        str,
+    ),
+    "OIDC_ALLOWED_USER_EMAILS": (
+        OIDC_ALLOWED_USER_EMAILS,
+        "Comma-separated list of email addresses that are allowed to log in Parkour. "
+        "Lower case, no spaces",
+        str,
+    ),
+    "OIDC_GENOMICSCF_GROUPS": (
+        OIDC_GENOMICSCF_GROUPS,
+        "Comma-separated list of LDAP group(s) for staff of the genomics laboratory. "
+        "Lower case, no spaces",
+        str,
+    ),
+    "OIDC_BIOINFOCF_GROUPS": (
+        OIDC_BIOINFOCF_GROUPS,
+        "Comma-separated list of LDAP group(s) for staff of the bioinformatics group. "
+        "Lower case, no spaces",
+        str,
+    ),
+    "DOCUMENTATION_URL": (DOCUMENTATION_URL, "Link for Parkour's manual", str),
+}
 
 # Facilities
-DEEPSEQ = 'Genomics-CF'
-BIOINFO = 'Bioinfo-CF'
+DEEPSEQ = "Genomics-CF"
+BIOINFO = "Bioinfo-CF"
 
 # Miscellaneous
 IMPRESSUM_URL = os.environ.get("IMPRESSUM_URL")
