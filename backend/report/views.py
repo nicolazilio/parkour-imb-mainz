@@ -6,16 +6,15 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.db.models import Prefetch
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
-from pandas import DataFrame
-
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
+from pandas import DataFrame
 
-from index_generator.models import PoolSize
 from common.models import User
+from index_generator.models import PoolSize
 
 from .sql import LIBRARY_SELECT, QUERY, SAMPLE_JOINS, SAMPLE_SELECT
 
@@ -73,6 +72,7 @@ class Report:
             )
             .filter(samples_submitted_time__gte=start,
                     samples_submitted_time__lte=end)
+            .distinct()
             .only(
                 "id",
                 "libraries",
@@ -96,6 +96,7 @@ class Report:
                     to_attr="fetched_samples"
                 ),
             )
+            .distinct()
             .only("id",
                   "pool__libraries",
                   "pool__samples")
@@ -113,6 +114,7 @@ class Report:
             )
             .filter(requests__samples_submitted_time__gte=start,
                     requests__samples_submitted_time__lte=end)
+            .distinct()
             .only("id",
                   "pool_size__sequencer__name",
                   "lanes")
@@ -275,8 +277,14 @@ class Report:
                 counts[sequencer_name]["libraries"] += len(pool.fetched_libraries)
                 counts[sequencer_name]["samples"] += len(pool.fetched_samples)
 
-        requests_counts = Counter(self.requests.values_list(
-            'flowcell__pool_size__pool__size__sequencer__name', flat=True))
+        requests_counts = Counter(
+            [
+                e[0]
+                for e in self.requests.values_list(
+                    "flowcell__pool_size__pool__size__sequencer__name", "name"
+                )
+            ]
+        )
 
         data = [
             {
@@ -297,8 +305,14 @@ class Report:
     def get_pi_sequencer_counts(self):
 
         # Count requests
-        requests = Counter(self.requests.values_list(
-            'flowcell__pool_size__pool__size__sequencer__name', 'pi'))
+        requests = Counter(
+            [
+                e[:2]
+                for e in self.requests.values_list(
+                    "flowcell__pool_size__pool__size__sequencer__name", "pi", "name"
+                )
+            ]
+        )
         requests_data = {}
         for item, count in requests.items():
             if item[1] not in requests_data:
@@ -352,8 +366,14 @@ class Report:
     def get_sequencing_kit_counts(self):
 
         # Count requests
-        requests_count = Counter(Request.objects.values_list(
-            'flowcell__pool_size__pool__size', flat=True))
+        requests_count = Counter(
+            [
+                e[0]
+                for e in self.requests.values_list(
+                    "flowcell__pool_size__pool__size", "name"
+                )
+            ]
+        )
         pool_sizes = PoolSize.objects.filter(id__in=requests_count.keys())
         requests_count = {str(pool_sizes.get(id=k)): v for
                           k, v in requests_count.items() if k}
@@ -389,10 +409,15 @@ class Report:
         return sorted({str(x.pool_size) for x in self.flowcells})
 
     def get_pi_sequencing_kit_counts(self):
-
         # Count requests
-        requests = Counter(self.requests.values_list(
-            'flowcell__pool_size__pool__size', 'pi'))
+        requests = Counter(
+            [
+                e[:2]
+                for e in self.requests.values_list(
+                    "flowcell__pool_size__pool__size", "pi", "name"
+                )
+            ]
+        )
         requests_data = {}
         pool_size_ids = set()
         for item, count in requests.items():
