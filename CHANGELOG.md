@@ -10,13 +10,13 @@ Breaking changes:
 Non-breaking changes:
 -->
 
-- Follow-up to the organisms' name changes: we added 'label' and 'yaml' fields to the model. They are very much like name, but curated for downstream analysis needs that were before handled over there (dissectBCL, BigRedButton, and nanoporeReads_dataTransfer.)
+- Follow-up to the organisms' name changes: we added 'label' and 'yaml' fields to the model. They are very much like name, but curated for downstream analyses' needs that were before handled by either dissectBCL, BigRedButton, and nanoporeReads_dataTransfer.
 - **We're now running on Python 3.12** (its CI jobs were reintroduced), and we have also added support for Python 3.13.
 - We have switched over to `uv` everywhere (Makefile, Docker, CI) instead of plain `pip-tools`.
 - Replaced `isort` and `black` with `ruff` (CI).
 - Added a 'Get Flowcell' context menu for staff users to find where each sample is being sequenced.
 - Fixed a bunch of typos.
-- Added history tracking to some of our key underlying models (e.g. Duties, Requests, Samples, Libraries, Organisms, Library Type, Library Protocol, Organization, PI, and CostUnit). See note below.
+- Added history tracking to some of our key underlying models (e.g. Duties, Requests, Samples, Libraries, Organisms, Library Type, Library Protocol, Organization, PI, and CostUnit).
 - ...
 
 
