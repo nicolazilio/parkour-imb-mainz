@@ -45,21 +45,6 @@ Ext.define("MainHub.view.requests.RequestsController", {
       },
       items: [
         {
-          text: "Get Flowcell",
-          hidden: !USER.is_staff,
-          handler: function () {
-            var url = Ext.String.format(
-              "/api/requests/{0}/get_flowcell/",
-              requestId
-            );
-            var downloadForm = Ext.create("Ext.form.Panel", {
-              standardSubmit: true
-            });
-            downloadForm.submit({ url: url, method: "GET" });
-          }
-        },
-        "-",
-        {
           text: "View",
           handler: function () {
             Ext.create("MainHub.view.requests.RequestWindow", {
@@ -146,6 +131,20 @@ Ext.define("MainHub.view.requests.RequestsController", {
         //     });
         //   }
         // },
+        {
+          text: "Get Flowcell IDs",
+          hidden: !USER.is_staff,
+          handler: function () {
+            var url = Ext.String.format(
+              "/api/requests/{0}/get_flowcell/",
+              requestId
+            );
+            var downloadForm = Ext.create("Ext.form.Panel", {
+              standardSubmit: true
+            });
+            downloadForm.submit({ url: url, method: "GET" });
+          }
+        },
         {
           text: "View File Paths",
           hidden: !USER.is_staff,
