@@ -295,11 +295,11 @@ compile:
 	for version in $$PY_VERSIONS; do \
 		this=backend/requirements/$$version; \
 		mkdir -p $$this; \
-		uv pip compile --no-progress --universal --python-version $$version \
+		uv pip compile --upgrade --quiet --no-progress --universal --python-version $$version \
 			backend/requirements/base.in -o $$this/base.txt; \
-		uv pip compile --no-progress --universal --python-version $$version \
+		uv pip compile --upgrade --quiet --no-progress --universal --python-version $$version \
 			backend/requirements/dev.in -c $$this/base.txt -o $$this/dev.txt; \
-		uv pip compile --no-progress --universal --python-version $$version \
+		uv pip compile --upgrade --quiet --no-progress --universal --python-version $$version \
 			backend/requirements/testing.in -c $$this/dev.txt -o $$this/testing.txt; \
 	done
 
