@@ -436,12 +436,11 @@ class FlowcellAnalysisViewSet(viewsets.ViewSet):
                     item.name,
                     item.library_type.name,
                     item.library_protocol.name,
-                    item.organism.name,
-                    # (
-                    #     item.organism.name,
-                    #     item.organism.label,
-                    #     item.organism.yaml,
-                    # ),
+                    [
+                        item.organism.name,
+                        item.organism.label,
+                        item.organism.yaml,
+                    ],
                     ind_type,
                     item.sequencing_depth,
                 ]
