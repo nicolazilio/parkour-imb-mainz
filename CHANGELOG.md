@@ -9,6 +9,7 @@ Breaking changes:
 
 Non-breaking changes:
 
+- Fixed an edge case where latency could swap samples/ libs from one request to the other when User changed its view too quickly. (#178)
 - ...
 
 
