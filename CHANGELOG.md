@@ -9,6 +9,7 @@ Breaking changes:
 
 Non-breaking changes:
 
+- Fixed 'DoesNotExist' error when deleting a Request, due to a wrong implementation of History tracking.
 - Fixed an edge case where latency could swap samples/ libs from one request to the other when User changed its view too quickly. (#178)
 - ...
 

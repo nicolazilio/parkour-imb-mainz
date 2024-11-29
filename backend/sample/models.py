@@ -1,7 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from library_sample_shared.models import GenericLibrarySample
-from simple_history.models import HistoricalRecords
 
 
 class NucleicAcidType(models.Model):
@@ -52,8 +51,6 @@ class Sample(GenericLibrarySample):
     )
 
     archived = models.BooleanField("Archived", default=False)
-
-    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Sample"

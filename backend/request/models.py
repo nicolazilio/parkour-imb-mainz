@@ -103,7 +103,7 @@ class Request(DateTimeMixin):
 
     archived = models.BooleanField("Archived", default=False)
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(inherit=True)
 
     filepaths = models.JSONField(null=False, default=filepaths_default)
 
