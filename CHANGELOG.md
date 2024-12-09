@@ -3,6 +3,11 @@
 ??.??.??
 ========
 
+- ...
+
+24.12.09
+========
+
 Breaking changes:
 
 - API endpoint `api/analysis_list/analysis_list/?flowcell_id={FCID}` was updated to return a list of 3 strings representing the organism (name, which is the old string returned until now, plus: label for naming downstream analysis directories, and a yaml key or filepath for downstream analyses e.g. dorado, cellranger, snakePipes, etc.)
@@ -11,7 +16,6 @@ Non-breaking changes:
 
 - Fixed 'DoesNotExist' error when deleting a Request, due to a wrong implementation of History tracking.
 - Fixed an edge case where latency could swap samples/ libs from one request to the other when User changed its view too quickly. (#178)
-- ...
 
 
 24.11.14
