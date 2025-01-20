@@ -306,7 +306,7 @@ Ext.define("MainHub.view.libraries.Libraries", {
             },
           },
           {
-            text: "Pool Name(s)",
+            text: "Pool(s)",
             dataIndex: "pool",
             resizable: false,
             menuDisabled: true,
