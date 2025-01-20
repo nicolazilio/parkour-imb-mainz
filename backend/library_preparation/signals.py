@@ -26,6 +26,11 @@ def update_samples(sender, instance, action, **kwargs):
             ),
         )
 
+        # For samples that already have a LibraryPreparation object,
+        # push them through to the pooling stage, this should be a
+        # re-pooling event (?)
+        instance.samples.filter(librarypreparation__isnull=False).update(status=3)
+
         # Only create a LibraryPreparation object for a sample if it does
         # not already have one attached to it
         LibraryPreparation.objects.bulk_create(
@@ -34,7 +39,3 @@ def update_samples(sender, instance, action, **kwargs):
                 for sample in instance.samples.filter(librarypreparation__isnull=True)
             ]
         )
-        # For samples that already have a LibraryPreparation object,
-        # push them through to the pooling stage, this should be a
-        # re-pooling event (?)
-        instance.samples.filter(librarypreparation__isnull=False).update(status=3)
