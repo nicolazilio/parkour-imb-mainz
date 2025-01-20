@@ -62,9 +62,12 @@ class LibraryPreparationViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
         pools = (
             Pool.objects.filter(archived=False, samples__pk__in=sample_ids)
             .distinct()
-            .values("name", "samples")
+            .values_list("name", "samples")
         )
-        pools_map = {x["samples"]: x["name"] for x in pools}
+        pools_map = {}
+        for key, val in pools:
+            pools_map.setdefault(val, []).append(key)
+        pools_map = {k: ', '.join(v) for k, v in pools_map.items()}
 
         # Get coordinates
         index_types = {x.sample.index_type.pk for x in queryset if x.sample.index_type}

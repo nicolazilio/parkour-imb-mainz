@@ -1,6 +1,7 @@
 from django.db.models import F, Func, Value
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
+
 from index_generator.models import Pool
 
 from .models import LibraryPreparation
@@ -25,8 +26,15 @@ def update_samples(sender, instance, action, **kwargs):
             ),
         )
 
-        # TODO: maybe there is a better way to create multiple objects at once
-        for sample in instance.samples.all():
-            obj, created = LibraryPreparation.objects.get_or_create(sample=sample)
-            if created:
-                obj.save()
+        # Only create a LibraryPreparation object for a sample if it does
+        # not already have one attached to it
+        LibraryPreparation.objects.bulk_create(
+            [
+                LibraryPreparation(sample=sample)
+                for sample in instance.samples.filter(librarypreparation__isnull=True)
+            ]
+        )
+        # For samples that already have a LibraryPreparation object,
+        # push them through to the pooling stage, this should be a
+        # re-pooling event (?)
+        instance.samples.filter(librarypreparation__isnull=False).update(status=3)

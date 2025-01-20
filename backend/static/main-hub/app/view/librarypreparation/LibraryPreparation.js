@@ -68,7 +68,7 @@ Ext.define("MainHub.view.librarypreparation.LibraryPreparation", {
             width: 250
           },
           {
-            text: "Pool",
+            text: "Pool(s)",
             tooltip: "Pool ID",
             dataIndex: "pool_name",
             width: 120
