@@ -17,6 +17,7 @@ class PoolingAdmin(admin.ModelAdmin):
     autocomplete_fields = (
         "library",
         "sample",
+        "pool",
     )
     list_select_related = True
 
@@ -45,6 +46,3 @@ class PoolingAdmin(admin.ModelAdmin):
         instance = obj.library if obj.library else obj.sample
         return instance.request.get().name
 
-    def pool(self, obj):
-        instance = obj.library if obj.library else obj.sample
-        return ', '.join([p.name for p in instance.pool.all()])

@@ -2,10 +2,11 @@ from common.models import DateTimeMixin
 from django.db import models
 from library.models import Library
 from sample.models import Sample
+from index_generator.models import Pool
 
 
 class Pooling(DateTimeMixin):
-    library = models.OneToOneField(
+    library = models.ForeignKey(
         Library,
         verbose_name="Library",
         null=True,
@@ -13,8 +14,12 @@ class Pooling(DateTimeMixin):
         on_delete=models.SET_NULL,
     )
 
-    sample = models.OneToOneField(
+    sample = models.ForeignKey(
         Sample, verbose_name="Sample", null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    pool = models.ForeignKey(
+        Pool, verbose_name="pool", null=True, blank=True, on_delete=models.SET_NULL
     )
 
     concentration_c1 = models.FloatField("Concentration C1", null=True, blank=True)

@@ -122,11 +122,22 @@ class PoolingBaseSerializer(ModelSerializer):
         return internal_value
 
     def update(self, instance, validated_data):
-        for attr, value in validated_data.items():
-            if attr == "concentration_c1":
-                setattr(instance.pooling, attr, value)
+        # Ugly way to retrieve pooling object, but it works
+        pool_id = self.initial_data[0].get("pool")
+        if pool_id:
+            pooling = instance.pooling_set.get(pool__id=pool_id)
+        else:
+            try:
+                pooling = instance.pooling_set.get()
+            except Exception:
+                pooling = None
 
-        instance.pooling.save()
+        if pooling:
+            for attr, value in validated_data.items():
+                if attr == "concentration_c1":
+                    setattr(pooling, attr, value)
+            pooling.save()
+
         instance.save()
 
         return instance

@@ -3,6 +3,7 @@ from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
 from index_generator.models import Pool
+from pooling.models import Pooling
 
 from .models import LibraryPreparation
 
@@ -27,12 +28,21 @@ def update_samples(sender, instance, action, **kwargs):
         )
 
         # For samples that already have a LibraryPreparation object,
-        # push them through to the pooling stage, this should be a
-        # re-pooling event (?)
-        instance.samples.filter(librarypreparation__isnull=False).update(status=3)
+        # I assume that this represents a re-pooling event (?),
+        # therefore push them through to the pooling stage and create
+        # a new Pooling object
+        existing_samples = instance.samples.filter(librarypreparation__isnull=False)
+        existing_samples.update(status=3)
+        Pooling.objects.bulk_create(
+            [
+                Pooling(sample=sample, pool=instance)
+                for sample in existing_samples.exclude(pooling__pool=instance)
+            ]
+        )
 
-        # Only create a LibraryPreparation object for a sample if it does
-        # not already have one attached to it
+        # For samples that do not have a LibraryPreparation object, it
+        # should be the first time they go through Parkour, therefore
+        # create a LibraryPreparation object
         LibraryPreparation.objects.bulk_create(
             [
                 LibraryPreparation(sample=sample)

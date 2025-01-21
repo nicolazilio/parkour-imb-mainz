@@ -45,7 +45,8 @@ Ext.define("MainHub.store.pooling.Pooling", {
               return Ext.Object.merge(
                 {
                   pk: record.get("pk"),
-                  record_type: record.get("record_type")
+                  record_type: record.get("record_type"),
+                  pool: record.get("pool"), // Ugly way to retrieve Pooling object in pooling.serializers.PoolingBaseSerializer.update
                 },
                 record.getChanges()
               );
