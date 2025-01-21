@@ -103,7 +103,10 @@ class LaneSerializer(ModelSerializer):
         records = obj.pool.libraries.all() or obj.pool.samples.all()
 
         for record in records:
-            protocols.append(record.library_protocol.name)
+            if record.library_protocol:
+                protocols.append(record.library_protocol.name)
+            else:
+                protocols.append(None)
 
         if len(protocols) == 1 or len(set(protocols)) == 1:
             return protocols[0]
