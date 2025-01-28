@@ -4,7 +4,7 @@ import logging
 from common.mixins import MultiEditMixin
 from common.views import CsrfExemptSessionAuthentication
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -44,7 +44,14 @@ class LibraryPreparationViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
                 "sample__index_type__indices_i7",
                 "sample__index_type__indices_i5",
             )
-            .filter(Q(sample__status=2) | Q(sample__status=-2), archived=False)
+            .annotate(pool_count=Count("sample__pool"))
+            .filter(
+                # Only show if exactly one pool is associated with a sample
+                # The assumption (right?) that any sample that is assigned
+                # to more than one pool and has a status of 2 represents a 
+                # re-pooling event 
+                Q(sample__status=2) | Q(sample__status=-2), archived=False, pool_count=1
+            )
         )
 
     def get_context(self, queryset):
