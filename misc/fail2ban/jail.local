@@ -1,0 +1,18 @@
+# /etc/fail2ban/jail.local
+
+[DEFAULT]
+bantime = 10m
+findtime = 10m
+maxretry = 3
+mta = sendmail
+destemail = dest@example.com
+sender = sender@example.com
+sendername = sendername
+action = %(action_)s
+         %(mta)s-parkour[sender="%(sender)s", sendername="%(sendername)s", dest="%(destemail)s", logpath="%(logpath)s"]
+
+[parkour]
+enabled  = true
+port     = http,https
+filter   = parkour-auth
+logpath  = /path/to/django.log

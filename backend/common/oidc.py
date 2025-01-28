@@ -1,5 +1,5 @@
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, AnonymousUser
 from django.conf import settings
 from common.models import User
 from django.core.mail import send_mail
@@ -10,6 +10,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from constance import config
 from request.views import get_staff_emails
 from django.contrib import messages
+from django.contrib.auth.signals import user_login_failed
 
 
 class ParkourOIDCAuthenticationBackend(OIDCAuthenticationBackend):
@@ -20,23 +21,29 @@ class ParkourOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         separated group names"""
         
         return any(g in user_groups for g in groups.split(','))
-    
-    def verify_claims(self, claims):
-        """Verify the provided claims to decide if authentication should be allowed.
-           Only users that belong to one of the groups in OIDC_ALLOWED_GROUPS can 
-           sign in.
-        """
 
-        # Check that the user is part of one of the allowed OIDC groups
-        user_email = claims.get('email', '').lower()
-        user_groups = claims.get('role', [])
-        if not (self.user_belongs_to_groups(user_groups, config.OIDC_ALLOWED_GROUPS) or user_email in config.OIDC_ALLOWED_USER_EMAILS):
-            messages.error(self.request, "Your user is not allowed to access Parkour.")
-            return False
+    def get_or_create_user(self, access_token, id_token, payload):
+        # Check whether user is allowed to log in, if not return
+        # AnonymousUser. Easier to do it here than in verify_claims
+        # because we need to return a user that can be recognized in 
+        # authenticate
+        user_info = self.get_userinfo(access_token, id_token, payload)
+        user_email = user_info.get("email", "").lower()
+        user_groups = user_info.get("role", [])
+        if not (
+            self.user_belongs_to_groups(user_groups, config.OIDC_ALLOWED_GROUPS)
+            or user_email in config.OIDC_ALLOWED_USER_EMAILS
+        ):
+            messages.warning(
+                self.request,
+                "Your user is valid but not yet allowed to access Parkour.",
+            )
+            user = AnonymousUser()
+            user.email = user_email
+            return user
 
-        # Otherwise carry out the default checks
-        return super(ParkourOIDCAuthenticationBackend, self).verify_claims(claims)
-    
+        return super().get_or_create_user(access_token, id_token, payload)
+
     def filter_users_by_claims(self, claims):
 
         # sub is a unique user's ID, any other attribute, including email could change
@@ -153,5 +160,21 @@ class ParkourOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         user.last_name = last_name
         user.oidc_id = oidc_id
         user.save()
+
+        return user
+
+    def authenticate(self, request, **kwargs):
+        user = super().authenticate(request, **kwargs)
+
+        # if user is AnonymousUser, assume that it means that the
+        # upstream user trying to log in is not allowed to do so, thus
+        # fire user_login_failed. AnonymousUser cannot be logged in 
+        # because is_active is set to False
+        if user and getattr(user, "is_anonymous", False):
+            user_login_failed.send(
+                sender=__name__,
+                credentials={"username": getattr(user, "email", "")},
+                request=request,
+            )
 
         return user

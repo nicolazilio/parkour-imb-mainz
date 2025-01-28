@@ -49,9 +49,16 @@
 
 {% block content %}
 
-{% if form.errors %}
+{% if form.errors or messages %}
 <div class="alert alert-danger" role="alert">
-    <p class="lead text-center">Your username and password didn't match. Please try again.</p>
+    {% if form.errors %}
+        <p class="lead text-center">Your username and password didn't match. Please try again.</p>
+    {% endif %}
+    {% if messages %}
+        {% for message in messages %}
+            <p class="lead text-center">{{ message|capfirst }}</p>
+        {% endfor %}
+    {% endif %}
 </div>
 {% endif %}
 

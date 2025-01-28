@@ -380,3 +380,8 @@ BIOINFO = "Bioinfo-CF"
 # Miscellaneous
 IMPRESSUM_URL = os.environ.get("IMPRESSUM_URL")
 DATA_PROTECTION_URL = os.environ.get("DATA_PROTECTION_URL")
+
+# Fail2Ban
+FAIL2BAN_ENABLE = os.environ.get("FAIL2BAN_ENABLE", "False") == "True"
+FAIL2BAN_BAN_TIME_MIN = os.environ.get("FAIL2BAN_BAN_TIME_MIN", 10)
+FAIL2BAN_NUM_ATTEMPTS = os.environ.get("FAIL2BAN_NUM_ATTEMPTS", 3)

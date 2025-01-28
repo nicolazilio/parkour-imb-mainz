@@ -11,4 +11,4 @@ class ErrorMiddleware:
         return response
 
     def process_exception(self, request, exception):
-        request.META["USER"] = request.user.email
+        request.META["USER"] = getattr(request.user, 'email', 'none')
