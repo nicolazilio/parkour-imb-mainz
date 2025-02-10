@@ -1832,7 +1832,12 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
     // Exact match
     var item = store.findRecord("id", value, 0, false, false, true);
 
-    return item ? item.get("name") : "";
+    // Try getting an item's name. If it cannot be, try getting the value
+    // of a field called {dataIndex}_name. This is to show the value of an
+    // item even if it is no longer present in a store, for example,
+    // because it was marked as archived. This works only for those fields
+    // for which a {dataIndex}_name attribute in the API exists
+    return item ? item.get("name") : record.get(dataIndex + '_name') ? record.get(dataIndex + '_name') : "";
   },
 
   createEmptyRecords: function (btn) {
