@@ -38,6 +38,9 @@ Ext.define("MainHub.view.requests.EmailWindowController", {
       return;
     }
 
+    btn.setDisabled(true);
+    btn.setText("Sending...");
+
     form.submit({
       url: Ext.String.format(
         "api/requests/{0}/send_email/",

@@ -234,7 +234,7 @@ Ext.define("MainHub.view.requests.RequestWindowController", {
             Ext.Msg.show({
               title: "Delete record",
               message: Ext.String.format(
-                'Are you sure you want to delete "{0}"?',
+                'Are you sure that you want to delete "{0}"?',
                 selectedItemName
               ),
               buttons: Ext.Msg.YESNO,
@@ -483,7 +483,10 @@ Ext.define("MainHub.view.requests.RequestWindowController", {
     });
 
     if (!form.isValid()) {
-      new Noty({ text: "Check the form", type: "warning" }).show();
+      new Noty({
+        text: "Please fill in all the required fields.",
+        type: "warning"
+      }).show();
       return;
     }
 
@@ -532,9 +535,9 @@ Ext.define("MainHub.view.requests.RequestWindowController", {
           var message;
 
           if (wnd.mode === "add") {
-            message = "Request has been saved.";
+            message = "The request has been saved successfully.";
           } else {
-            message = "The changes have been saved.";
+            message = "Changes have been saved successfully.";
           }
 
           new Noty({ text: message }).show();
@@ -560,6 +563,17 @@ Ext.define("MainHub.view.requests.RequestWindowController", {
         console.error(response);
       }
     });
+  },
+
+  onRequestWindowBeforeClose: function (wnd) {
+    var librariesInRequestStore = Ext.getStore("librariesInRequestStore");
+    if (librariesInRequestStore) {
+      librariesInRequestStore.removeAll();
+    }
+    var librariesInRequestGrid = wnd.down("#libraries-in-request-grid");
+    if (librariesInRequestGrid) {
+      librariesInRequestGrid.getView().refresh();
+    }
   },
 
   initializeTooltips: function () {

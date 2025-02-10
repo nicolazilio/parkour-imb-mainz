@@ -9,7 +9,7 @@ endif
 
 stamp := $(shell date +%Y%m%d_%H%M%S)_$(shell git log --oneline -1 | cut -d' ' -f1)
 
-deploy: check-rootdir set-prod deploy-django deploy-caddy collect-static load-fixtures  ## Deploy to localhost:9980 with initial and required data loaded!
+deploy: check-rootdir set-prod deploy-webapp deploy-caddy collect-static load-fixtures  ## Deploy to localhost:9980 with initial and required data loaded!
 
 help: check-rootdir
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,18 +21,14 @@ check-rootdir:
 		exit 1; }
 
 set-prod:
-	@sed -i -e 's#\(target:\) pk2_.*#\1 pk2_prod#' docker-compose.yml
+	@sed -i -e 's#\(target:\) pk2_.*#\1 pk2_base#' docker-compose.yml
 	@sed -i -e 's#\(^CMD \["npm", "run", "start-\).*\]#\1prod"\]#' frontend.Dockerfile
 	@test -e ./misc/parkour.env.ignore && cp ./misc/parkour.env.ignore ./misc/parkour.env || :
 
-deploy-django: deploy-network deploy-containers
-
-deploy-network:
-	@docker network create parkour2
-
-deploy-containers:
+deploy-webapp:
 	@docker compose build
-	@docker compose up -d
+	@docker compose --project-name=parkour2 up -d
+	@git checkout docker-compose.yml
 
 deploy-ready: apply-migrations collect-static
 
@@ -61,12 +57,13 @@ lint-migras:
 
 migrations:
 	@docker compose exec parkour2-django python manage.py makemigrations
+	@#find backend/ -user root -path '**/migrations/*.py' -print0 | xargs -0 -n 1 -I {_} echo docker compose exec parkour2-django chown 1000:1000 {_}  ## adjust `uid` and `gid`, and run this manually to fix permissions from within container.
 
 check-migras:
 	@docker compose exec parkour2-django python manage.py makemigrations --no-input --check --dry-run
 
 stop:
-	@docker compose -f docker-compose.yml -f caddy.yml -f nginx.yml -f rsnapshot.yml -f pgadmin.yml stop
+	@docker compose -f docker-compose.yml -f misc/caddy.yml -f misc/nginx.yml -f misc/rsnapshot.yml stop
 
 rm-volumes:
 	@VOLUMES=$$(docker volume ls -q | grep "^parkour2_") || :
@@ -75,7 +72,7 @@ rm-volumes:
 down: clean  ## Turn off running instance (persisting media & staticfiles' volumes)
 	@CONTAINERS=$$(docker ps -a -f status=exited | awk '/^parkour2_parkour2-/ { print $$7 }') || :
 	@test $${#CONTAINERS[@]} -gt 1 && docker rm $$CONTAINERS > /dev/null || :
-	@docker compose -f docker-compose.yml -f caddy.yml -f nginx.yml -f rsnapshot.yml -f pgadmin.yml down
+	@docker compose -f docker-compose.yml -f misc/caddy.yml -f misc/nginx.yml -f misc/rsnapshot.yml down
 	@docker volume rm -f parkour2_pgdb > /dev/null
 	@docker network rm -f parkour2
 
@@ -83,8 +80,8 @@ set-base:
 	@sed -i -e 's#\(target:\) pk2_.*#\1 pk2_base#' docker-compose.yml
 
 clean:
-	#@docker compose exec parkour2-django rm -f backend/logs/*.log
-	@$(MAKE) set-base hardreset-caddyfile > /dev/null
+	@#docker compose exec parkour2-django rm -f backend/logs/*.log
+	@$(MAKE) set-base hardreset-caddyfile disable-explorer > /dev/null
 	@test -e ./misc/parkour.env.ignore && git checkout ./misc/parkour.env || :
 
 sweep:  ## Remove any sqldump and migrations tar gzipped older than a week. (Excluding current symlink targets.)
@@ -103,54 +100,41 @@ clearpy:  ## Removes some files, created by 'prod' deployment and owned by root.
 	@docker compose exec parkour2-django find . -type f -name "*.py[co]" -exec /bin/rm -rf {} +;
 	@docker compose exec parkour2-django find . -type d -name "__pycache__" -exec /bin/rm -rf {} +;
 
-prod: down set-prod deploy-django deploy-nginx collect-static deploy-rsnapshot clean  ## Deploy Gunicorn instance with Nginx, and rsnapshot service
+prod: down set-prod deploy-webapp deploy-nginx collect-static deploy-rsnapshot clean  ## Deploy Gunicorn instance with Nginx, and rsnapshot service
 
-prod-ci: down set-prod deploy-django collect-static apply-migrations clean
+prod-ci: down set-prod deploy-webapp collect-static apply-migrations clean
 	@docker exec parkour2-django python manage.py check
 
-dev-easy: down set-dev deploy-django deploy-caddy collect-static clean  ## Deploy Werkzeug instance with Caddy
+dev-easy: down set-dev deploy-webapp deploy-caddy collect-static clean  ## Deploy Werkzeug instance with Caddy
 
-dev: down set-dev deploy-django deploy-nginx collect-static clean  ## Deploy Werkzeug instance with Nginx (incl. TLS)
+dev: down set-dev deploy-webapp deploy-nginx collect-static clean  ## Deploy Werkzeug instance with Nginx (incl. TLS)
 
 set-dev: hardreset-caddyfile
 	@sed -i -e 's#\(target:\) pk2_.*#\1 pk2_dev#' docker-compose.yml
 	# @sed -i -e 's#\(^CMD \["npm", "run", "start-\).*\]#\1dev"\]#' frontend.Dockerfile
 	@test -e ./misc/parkour.env.ignore && cp ./misc/parkour.env.ignore ./misc/parkour.env || :
 
-add-pgadmin-caddy: hardreset-caddyfile
-	@echo -e "\nhttp://*:9981 {\n\thandle {\n\t\treverse_proxy parkour2-pgadmin:8080\n\t}\n\tlog\n}" >> misc/Caddyfile
-
 hardreset-caddyfile:
 	@echo -e "http://*:9980 {\n\thandle /static/* {\n\t\troot * /parkour2\n\t\tfile_server\n\t}\n\thandle /protected_media/* {\n\t\troot * /parkour2\n\t\tfile_server\n\t}\n\thandle /vue/* {\n\t\treverse_proxy parkour2-vite:5173\n\t}\n\thandle /vue-assets/* {\n\t\treverse_proxy parkour2-vite:5173\n\t}\n\thandle {\n\t\treverse_proxy parkour2-django:8000\n\t}\n\tlog\n}" > misc/Caddyfile
 
 hardreset-envfile:
-	@echo -e "TIME_ZONE=Europe/Berlin\nADMIN_NAME=admin\nADMIN_EMAIL=your@mail.server.tld\nEMAIL_HOST=mail.server.tld\nEMAIL_SUBJECT_PREFIX=[Parkour2]\nSERVER_EMAIL=errors@mail.server.tld\nCSRF_TRUSTED_ORIGINS=http://127.0.0.1,https://*.server.tld,http://localhost:5174\nPOSTGRES_USER=postgres\nPOSTGRES_DB=postgres\nPOSTGRES_PASSWORD=change_me__stay_safe\nDATABASE_URL=postgres://postgres:change_me__stay_safe@parkour2-postgres:5432/postgres\nSECRET_KEY=generate__one__with__openssl__rand__DASH_hex__32" > misc/parkour.env
+	@echo -e "TIME_ZONE=Europe/Berlin\nADMIN_NAME=admin\nADMIN_EMAIL=your@mail.server.tld\nEMAIL_HOST=mail.server.tld\nEMAIL_SUBJECT_PREFIX=[Parkour2]\nSERVER_EMAIL=errors@mail.server.tld\nCSRF_TRUSTED_ORIGINS=http://127.0.0.1,https://*.server.tld,http://localhost:5174\nPOSTGRES_DB=postgres\nPOSTGRES_USER=postgres\nPOSTGRES_PASSWORD=change_me__stay_safe\nDATABASE_URL=postgres://postgres:change_me__stay_safe@parkour2-postgres:5432/postgres\nREADONLY_USER=ropg\nREADONLY_PASSWORD=change_me__stay_safe2\nREADONLY_DATABASE_URL=postgres://ropg:change_me__stay_safe2@parkour2-postgres:5432/postgres\nOPENROUTER_API_KEY=aaaaaaaaaaaaaaaaa\nSECRET_KEY=generate__one__with__openssl__rand__DASH_hex__32" > misc/parkour.env
 
 deploy-caddy:
-	@docker compose -f caddy.yml up -d
+	@docker compose -f misc/caddy.yml --project-name=parkour2 up -d
 
 deploy-nginx:
 	@test -e ./misc/key.pem && test -e ./misc/cert.pem || \
 		{ echo "ERROR: TLS certificates not found!"; exit 1; }
-	@docker compose -f nginx.yml up -d
-
-deploy-pgadmin:
-	@docker compose -f pgadmin.yml up -d
-	@CONTAINERS=$$(docker ps -a -f status=running | awk '/^parkour2-/ { print $$1}') || :
-	@[[ $${CONTAINERS[*]} =~ nginx ]] && $(MAKE) add-pgadmin-nginx || :
-	@[[ $${CONTAINERS[*]} =~ caddy ]] && $(MAKE) add-pgadmin-caddy || :
-
-add-pgadmin-nginx:
-	@docker cp misc/nginx-pgadmin.conf parkour2-nginx:/etc/nginx/conf.d/
-	@docker exec parkour2-nginx nginx -s reload
+	@docker compose -f misc/nginx.yml --project-name=parkour2 up -d
 
 convert-backup:  ## Convert xxxly.0's pgdb to ./misc/*.sqldump (updating symlink too)
-	@docker compose -f convert-backup.yml up -d && sleep 1m && \
+	@docker compose -f misc/convert-backup.yml --project-name=parkour2 up -d && sleep 1m && \
 		echo "Warning: If this fails, most probably pg was still starting... retry manually!" && \
 		docker exec parkour2-convert-backup sh -c \
 			"pg_dump -Fc postgres -U postgres -f tmp_parkour_dump" && \
 		docker cp parkour2-convert-backup:/tmp_parkour_dump misc/db_$(stamp).sqldump
-		docker compose -f convert-backup.yml down
+		docker compose -f misc/convert-backup.yml down
 	@ln -sf db_$(stamp).sqldump misc/latest.sqldump
 
 load-media:  ## Copy all media files into running instance
@@ -167,6 +151,7 @@ load-postgres:  ## Restore instant snapshot (sqldump) on running instance
 		--dbname=postgres --username=postgres tmp_parkour-postgres.dump \
 		1> /tmp/pg_log_out.txt 2> /tmp/pg_log_err.txt" || \
 			docker exec parkour2-postgres cat /tmp/pg_log_err.txt
+	@$(MAKE) clean
 
 load-postgres-plain:
 	@test -e ./this.sql && \
@@ -214,12 +199,12 @@ import-pgdb:
 # 	@echo gh release create --generate-notes
 
 deploy-rsnapshot:
-	@docker compose -f rsnapshot.yml up -d && \
+	@docker compose -f misc/rsnapshot.yml --project-name=parkour2 up -d && \
 		sleep 1m && \
 		docker exec parkour2-rsnapshot rsnapshot halfy
 
 # --buffer --reverse --failfast --timing
-djtest: down set-testing deploy-django clean  ## Re-deploy and run Backend tests
+djtest: down set-testing deploy-webapp clean  ## Re-deploy and run Backend tests
 	@docker compose exec parkour2-django python manage.py test --parallel
 
 set-testing:
@@ -228,12 +213,12 @@ set-testing:
 set-playwright:
 	@sed -i -e 's#\(target:\) pk2_.*#\1 pk2_playwright#' docker-compose.yml
 
-# pytest: down set-testing deploy-django
+# pytest: down set-testing deploy-webapp
 # 	@docker compose exec parkour2-django pytest -n auto
 
-playwright: down set-playwright deploy-django deploy-caddy collect-static load-fixtures e2e  ## Re-deploy and run Frontend tests
+playwright: down set-playwright deploy-webapp deploy-caddy collect-static load-fixtures e2e  ## Re-deploy and run Frontend tests
 
-playwright-migras: down set-playwright deploy-django deploy-caddy collect-static load-fixtures-migras e2e
+playwright-migras: down set-playwright deploy-webapp deploy-caddy collect-static load-fixtures-migras e2e
 
 e2e:
 	@docker compose exec parkour2-django pytest -n $(NcpuThird) -c playwright.ini
@@ -243,10 +228,10 @@ create-admin:
 		"DJANGO_SUPERUSER_PASSWORD=testing.password DJANGO_SUPERUSER_EMAIL=test.user@test.com \
 			python manage.py createsuperuser --no-input"
 
-coverage-xml: down set-testing deploy-django
+coverage-xml: down set-testing deploy-webapp
 	@docker compose exec parkour2-django pytest -n auto --cov=./ --cov-config=.coveragerc --cov-report=xml
 
-coverage-html: down set-testing deploy-django
+coverage-html: down set-testing deploy-webapp
 	@docker compose exec parkour2-django coverage erase
 	@docker compose exec parkour2-django coverage run -m pytest -n auto --cov=./ --cov-config=.coveragerc --cov-report=html
 
@@ -278,7 +263,7 @@ reload-nginx:
 models:
 	@docker exec parkour2-django sh -c "apt update && \
 		apt install -y pdfposter graphviz libgraphviz-dev pkg-config && \
-		pip install pydot && \
+		uv pip install --system pydot && \
 		python manage.py graph_models -n --pydot -g -a -o /tmp_parkour.dot && \
 		sed -i -e 's/\(fontsize\)=[0-9]\+/\1=20/' /tmp_parkour.dot && \
 		dot -T pdf -o /tmp_parkour.pdf /tmp_parkour.dot"
@@ -299,15 +284,24 @@ precomitupd:
 	@pre-commit autoupdate
 
 compile:
-	# @test -d ./env_dev || \
-	# 	{ echo "ERROR: venv not found! Try: make env-setup-dev"; exit 1; }
-	# @if [[ :$PATH: == *:"env_dev":* ]] ; then
-	# 	source ./env_dev/bin/activate && echo "venv activated!"
-	# 	pip install --upgrade pip wheel setuptools pip-compile-multi
-	# else
-	# 	exit 1
-	# fi
-	@pip-compile-multi --allow-unsafe -d backend/requirements/
+	@PY_VERSIONS=$$(awk '/python-version:/ { \
+		match($$0, /\[(.*)\]/, a); \
+		split(a[1], versions, ","); \
+		for (i in versions) { \
+			gsub(/^[ '\'']+|[ '\'']+$$/, "", versions[i]); \
+			print versions[i]; \
+		} \
+	}' .github/workflows/django.yml); \
+	for version in $$PY_VERSIONS; do \
+		this=backend/requirements/$$version; \
+		mkdir -p $$this; \
+		uv pip compile --upgrade --quiet --no-progress --universal --python-version $$version \
+			backend/requirements/base.in -o $$this/base.txt; \
+		uv pip compile --upgrade --quiet --no-progress --universal --python-version $$version \
+			backend/requirements/dev.in -c $$this/base.txt -o $$this/dev.txt; \
+		uv pip compile --upgrade --quiet --no-progress --universal --python-version $$version \
+			backend/requirements/testing.in -c $$this/dev.txt -o $$this/testing.txt; \
+	done
 
 ncu:
 	# @npm install -g npm-check-updates
@@ -317,14 +311,10 @@ get-pin:
 	@docker compose logs parkour2-django | grep PIN | cut -d':' -f2 | uniq
 
 env-setup-dev:
-	@env python3 -m venv env_dev && \
-		source ./env_dev/bin/activate && \
-		env python3 -m pip install --upgrade pip && \
-		pip install \
-			pre-commit \
-			pip-tools \
-			pip-compile-multi
-	deactivate
+	@echo "First, install uv: https://docs.astral.sh/uv/getting-started/installation/"
+	@echo "$ uv python install 3.12"
+	@echo "$ echo ruff black djlint | xargs -n1 uv tool install --python 3.12"
+	@echo "$ uv tool install --python 3.12 pre-commit --with pre-commit-uv"
 
 open-pr:
 	@git pull && git push && git pull origin develop
@@ -395,11 +385,51 @@ dev-ez: dev-easy db-migras
 db-migras: put-old-migras db put-new-migras  ## Useful after 'git checkout <tag> && tar-old-migras && git switch -'
 
 put-new-migras:
-	@git restore -W backend/**/migrations/
+	@git checkout -- backend/**/migrations/
 	@$(MAKE) migrate
 
 load-fixtures-migras: put-old-migras apply-migrations
 	@docker compose exec parkour2-django python manage.py load_initial_data
 	@$(MAKE) put-new-migras
+
+update-fixtures: dev load-fixtures-migras  ## Redeploy with fixtures, migrate fields, save data to json.
+	@docker compose exec parkour2-django python manage.py save_initial_data
+
+enable-ollama:
+	@docker run -d -v ./misc/ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+	@echo "Work In Progress: this feature was not finalized, open an issue (or PR :D) if you need it."
+
+enable-explorer:
+	@docker exec parkour2-django python manage.py create_readonly_pg
+	@sed -i -e \
+		's%# \(path("explorer/", include("explorer.urls")),\)%\1%' \
+		backend/wui/urls.py
+	@sed -i -e \
+		's%# \("explorer",\)%\1%' \
+		backend/wui/settings/dev.py
+	@$(MAKE) schema collect-static
+	@docker exec parkour2-django python manage.py create_sample_queries
+
+disable-ollama:
+	@docker container stop ollama
+	@docker container prune -f
+
+disable-explorer:
+	@sed -i -e \
+		's%^\(\s*\)\(path("explorer/", include("explorer.urls")),\)%\1# \2%' \
+		backend/wui/urls.py
+	@sed -i -e \
+		's%^\(\s*\)\("explorer",\)%\1# \2%' \
+		backend/wui/settings/dev.py
+
+# aider:
+# 	@export OPENROUTER_API_KEY=$$(grep OPENROUTER_API_KEY misc/parkour.env.ignore | cut -d'=' -f2)
+# 	@cd backend/ && aider --subtree-only --model openrouter/google/gemma-2-9b-it:free
+
+deploy2dev:
+	@git diff > test.patch && scp test.patch root@parkour-dev:~
+	@ssh root@parkour-dev "cd parkour2 && \
+		/root/anaconda/bin/git restore . && \
+		/root/anaconda/bin/git apply ~/test.patch"
 
 # Remember: (docker compose run == docker exec) != docker run

@@ -3,6 +3,7 @@ from common.admin import ArchivedFilter
 from django.contrib import admin
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from request.models import Request, FileRequest
+from simple_history.admin import SimpleHistoryAdmin
 
 
 class RelatedDropdownFilterPi(RelatedDropdownFilter):
@@ -21,7 +22,7 @@ class FileRequestAdmin(admin.ModelAdmin):
         return False
 
 @admin.register(Request)
-class RequestAdmin(admin.ModelAdmin):
+class RequestAdmin(SimpleHistoryAdmin):
     list_display = (
         'id',
         "name",

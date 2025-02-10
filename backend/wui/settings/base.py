@@ -76,7 +76,10 @@ INSTALLED_APPS = [
     "metadata_exporter",
     "mozilla_django_oidc",
     "drf_spectacular",
+    "simple_history",
 ]
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
@@ -88,6 +91,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "extra.middleware.ErrorMiddleware",
     "mozilla_django_oidc.middleware.SessionRefresh",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -123,13 +127,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-# SQLite is fallback option if no DATABASE_URL env-var is found by the extension
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:////usr/src/db.sqlite")
+
+db_dict = dj_database_url.config(
+    default=dj_database_url.parse(DATABASE_URL),
+    conn_max_age=600,
+    conn_health_checks=True,
+)
+
+# db_dict['OPTIONS'] = { "server_side_binding": True }
+
 DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:////usr/src/db.sqlite",
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    "default": db_dict,
 }
 
 # Password validation

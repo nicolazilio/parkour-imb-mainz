@@ -3,6 +3,7 @@ misc/*.pem
 misc/*.tar.gz
 misc/*-dump.json
 misc/*.sqldump
+misc/ollama/
 *_dump/
 *_dumps/
 rsnapshot/
@@ -20,3 +21,4 @@ backend/frontend_testing_suite/results/**/trace.zip
 .*_cache/
 *.ignore
 node_modules/
+.aider*

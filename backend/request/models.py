@@ -7,6 +7,7 @@ from django.db import models
 from library.models import Library
 from sample.models import Sample
 from index_generator.models import PoolSize
+from simple_history.models import HistoricalRecords
 
 
 def get_sentinel_user():
@@ -50,12 +51,11 @@ class FileRequest(models.Model):
 
 class Request(DateTimeMixin):
     name = models.CharField("Name", max_length=100, blank=True)
-    description = models.TextField(blank=True)
-    token = models.CharField("Token",
-                             max_length=50,
-                             blank=True,
-                             null=True,
-                             unique=True)
+    description = models.TextField(
+        blank=True,
+        default="",
+    )
+    token = models.CharField("Token", max_length=50, blank=True, null=True, unique=True)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -193,6 +193,8 @@ class Request(DateTimeMixin):
                                     )
 
     archived = models.BooleanField("Archived", default=False)
+
+    history = HistoricalRecords(inherit=True)
 
     filepaths = models.JSONField(null=False, default=filepaths_default)
 

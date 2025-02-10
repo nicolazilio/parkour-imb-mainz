@@ -4,14 +4,17 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
 from django.forms import ValidationError
+from simple_history.models import HistoricalRecords
 
 AlphaValidator = RegexValidator(
-    r"^[A-Z]$", "Only capital alpha characters are allowed."
+    r"^[A-Z]$", "Only capital letters characters are allowed."
 )
 
 
 class Organism(models.Model):
     name = models.CharField("Name", max_length=100)
+    label = models.CharField("Label", max_length=25, null=True, blank=True)
+    yaml = models.CharField("YAML", max_length=200, null=True, blank=True)
     scientific_name = models.CharField(
         "Scientific Name",
         max_length=150,
@@ -24,6 +27,7 @@ class Organism(models.Model):
         null=True,
     )
     archived = models.BooleanField("Archived", default=False)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -259,6 +263,7 @@ class LibraryProtocol(models.Model):
     status = models.PositiveIntegerField("Status", default=1)
     comments = models.TextField("Comments", null=True, blank=True)
     archived = models.BooleanField("Archived", default=False)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Library Protocol"
@@ -295,6 +300,7 @@ class LibraryType(models.Model):
         verbose_name="Library Protocol",
     )
     archived = models.BooleanField("Archived", default=False)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Library Type"

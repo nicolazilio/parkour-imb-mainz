@@ -59,6 +59,7 @@ class RequestSerializer(ModelSerializer):
             "invoice_date",
             "number_of_samples",
             "filepaths",
+            "metapaths",
         )
 
     def get_user_full_name(self, obj):

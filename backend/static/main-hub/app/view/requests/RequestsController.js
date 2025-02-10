@@ -83,7 +83,7 @@ Ext.define("MainHub.view.requests.RequestsController", {
             Ext.Msg.show({
               title: "Delete Request",
               message: Ext.String.format(
-                'Are you sure you want to delete the request "{0}"?',
+                'Are you sure that you want to delete the request "{0}"?',
                 record.get("name")
               ),
               buttons: Ext.Msg.YESNO,
@@ -157,20 +157,34 @@ Ext.define("MainHub.view.requests.RequestsController", {
           }
         },
         "-",
-        {
-          text: "Metadata Exporter",
-          disabled: !record.get("completed"),
-          handler: function () {
-            Ext.create("MainHub.view.metadataexporter.MetadataExporter", {
-              request: record
-            });
-          }
-        },
+        // {
+        //   text: "Metadata Exporter",
+        //   disabled: !record.get("completed"),
+        //   handler: function () {
+        //     Ext.create("MainHub.view.metadataexporter.MetadataExporter", {
+        //       request: record
+        //     });
+        //   }
+        // },
+        // {
+        //   text: "Get Flowcell IDs",
+        //   hidden: !USER.is_staff,
+        //   handler: function () {
+        //     var url = Ext.String.format(
+        //       "/api/requests/{0}/get_flowcell/",
+        //       requestId
+        //     );
+        //     var downloadForm = Ext.create("Ext.form.Panel", {
+        //       standardSubmit: true
+        //     });
+        //     downloadForm.submit({ url: url, method: "GET" });
+        //   }
+        // },
         {
           text: "View File Paths",
           hidden: !USER.is_staff,
           handler: function () {
-            Ext.create("MainHub.view.requests.FilePathsWindow", {
+            Ext.create("MainHub.view.requests.FilepathsWindow", {
               title: "File Paths",
               record: record
             });
@@ -193,7 +207,7 @@ Ext.define("MainHub.view.requests.RequestsController", {
             Ext.Msg.show({
               title: "Mark request as complete",
               message: Ext.String.format(
-                'Are you sure you want to mark request "{0} as complete?',
+                'Are you sure that you want to mark request "{0} as complete?',
                 record.get("name")
               ),
               buttons: Ext.Msg.YESNO,

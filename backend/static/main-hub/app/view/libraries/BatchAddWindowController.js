@@ -500,10 +500,10 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
             });
           }
 
-          // Update Nucleic Acid Type
+          // Update Input Material
           else if (dataIndex === "nucleic_acid_type") {
             // Reset Library Protocol and Library Type for records
-            // with a different Nucleic Acid Type
+            // with a different Input Material
             if (
               item.get("nucleic_acid_type") !== record.get("nucleic_acid_type")
             ) {
@@ -528,7 +528,7 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
 
             // Samples
             else {
-              // Reset Library Protocol if Nucleic Acid Types Library Types
+              // Reset Library Protocol if Input Materials Library Types
               // are different
               if (
                 item.get("nucleic_acid_type") !==
@@ -545,7 +545,7 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
             item.set("library_type", record.get("library_type"));
           }
 
-          // If Library Protocol was selected, update Library Type and Nucleic Acid Type
+          // If Library Protocol was selected, update Library Type and Input Material
           else if (dataIndex === "library_protocol") {
             item.set({
               library_protocol: record.get("library_protocol"),
@@ -554,7 +554,7 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
             });
           }
 
-          // RNA Quality should be applied only when Nucleic Acid Type is RNA
+          // RNA Quality should be applied only when Input Material is RNA
           else if (dataIndex === "rna_quality") {
             var nat = Ext.getStore("nucleicAcidTypesStore").findRecord(
               "id",
@@ -639,7 +639,7 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
       } else {
         libraryTypeEditor.enable();
 
-        // Filter Library Types store for currently selected Nucleic Acid Type
+        // Filter Library Types store for currently selected Input Material
         if (record.get("library_type") !== 0) {
           this.filterLibraryTypes(record.get("nucleic_acid_type"));
         }
@@ -788,7 +788,7 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
       record.set({ index_i7: "", index_i5: "" });
     }
 
-    // Reset RNA Quality if Nucleic Acid Type has changed
+    // Reset RNA Quality if Input Material has changed
     var nat = Ext.getStore("nucleicAcidTypesStore").findRecord(
       "id",
       record.get("nucleic_acid_type")
@@ -961,7 +961,7 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
       return item.get("library_type").indexOf(libraryTypeId) !== -1;
     });
 
-    // Filter by nucleic acid type
+    // Filter by Input Material
     if (nucleicAcidTypeId) {
       store.filterBy(function (item) {
         return item.get("nucleic_acid_types").indexOf(nucleicAcidTypeId) !== -1;
@@ -995,13 +995,12 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
 
     var columns = Ext.Array.merge(this.getCommonColumns(mode), [
       {
-        text: "size (bp)",
+        text: "Size (bp)",
         dataIndex: "mean_fragment_size",
         tooltip: "Mean Fragment Size",
         width: 100,
         editor: {
           xtype: "numberfield",
-          allowDecimals: false,
           minValue: 0
         },
         renderer: this.errorRenderer
@@ -1178,10 +1177,10 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
 
     var columns = Ext.Array.merge(this.getCommonColumns(mode), [
       {
-        text: "Submitted material",
+        text: "Input Material",
         dataIndex: "nucleic_acid_type",
         tooltip:
-          "Submitted sample material<br><br>Type <i>DNA</i>, <i>RNA</i> " +
+          "Input sample material<br><br>Type <i>DNA</i>, <i>RNA</i> " +
           "or <i>Sin[gle cell]</i>, and select from choices.",
         width: 200,
         editor: {
@@ -1626,12 +1625,12 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
           var message;
 
           if (requestWnd.mode === "add") {
-            message = "Request has been saved.";
+            message = "The request has been auto-saved.";
             requestWnd.mode = "edit";
             requestWnd.autoSaveRequestId = obj.pk;
             requestWnd.setTitle(this.requestName);
           } else {
-            message = "The changes have been saved.";
+            message = "The request has been saved successfully.";
           }
 
           new Noty({ text: message }).show();
@@ -1676,7 +1675,10 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
     }, 0);
 
     if (numInvalidRecords !== 0) {
-      new Noty({ text: "Check the records.", type: "warning" }).show();
+      new Noty({
+        text: "Please check the record entries.",
+        type: "warning"
+      }).show();
       return;
     }
 
@@ -1706,7 +1708,7 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
               store.remove(record);
             }
 
-            new Noty({ text: "Records have been added!" }).show();
+            new Noty({ text: "Records have been added successfully." }).show();
             // If new libraries/samples are added, try to automatically save the request,
             // otherwise, if the request is not saved, such libraries/samples
             // are 'lost', or at least they don't have a request associated to them
@@ -1715,7 +1717,7 @@ Ext.define("MainHub.view.libraries.BatchAddWindowController", {
             librariesInRequestGrid
               .down("#check-column")
               .fireEvent("unselectall");
-            new Noty({ text: "The changes have been saved!" }).show();
+            new Noty({ text: "Changes have been saved successfully." }).show();
           }
           wnd.allowClose = true;
           wnd.close();

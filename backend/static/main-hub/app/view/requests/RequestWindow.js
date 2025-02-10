@@ -13,6 +13,10 @@ Ext.define("MainHub.view.requests.RequestWindow", {
   modal: true,
   resizable: true,
 
+  listeners: {
+    beforeclose: "onRequestWindowBeforeClose"
+  },
+
   items: [
     {
       xtype: "container",
@@ -163,7 +167,7 @@ Ext.define("MainHub.view.requests.RequestWindow", {
                   itemId: "request-description",
                   cls: "pl-description",
                   xtype: "textarea",
-                  fieldLabel: "Description",
+                  fieldLabel: "Description*",
                   emptyText: "Description",
                   height: 85,
                 },

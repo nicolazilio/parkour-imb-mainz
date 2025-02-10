@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
-
+from simple_history.admin import SimpleHistoryAdmin
 from .models import Library
 
 
 @admin.register(Library)
-class LibraryAdmin(admin.ModelAdmin):
+class LibraryAdmin(SimpleHistoryAdmin):
     list_display = (
         "name",
         "barcode",

@@ -1630,6 +1630,7 @@ class TestIndexGenerator(BaseTestCase):
             {
                 "pk": sample.pk,
                 "name": sample.name,
+                "barcode": sample.barcode,
                 "record_type": "Sample",
                 "read_length": sample.read_length_id,
                 "sequencing_depth": sample.sequencing_depth,

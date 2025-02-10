@@ -51,7 +51,7 @@ def index(request):
                     "member_of_bcf": user.member_of_bcf,
                     "is_bioinformatician": user.is_bioinformatician,
                     "is_pi": user.is_pi,
-                    "can_solicite_paperless_approval": user.can_solicite_paperless_approval,
+                    "paperless_approval": user.paperless_approval,
                 }
             ),
             "DOCUMENTATION_URL": config.DOCUMENTATION_URL,
@@ -194,7 +194,9 @@ def protected_media(request, *args, **kwargs):
         # Set file name
         file_name = basename(url_path)
         # Needed for file names that include special, non ascii, characters
-        response["Content-Disposition"] = f"attachment; filename*=utf-8''{quote(file_name)}"
+        response["Content-Disposition"] = (
+            f"attachment; filename*=utf-8''{quote(file_name)}"
+        )
 
         return response
 
@@ -415,6 +417,9 @@ def user_details(request):
                 "id": user.pk,
                 "name": user.full_name,
                 "is_staff": user.is_staff,
+                "member_of_bcf": user.member_of_bcf,
+                "is_bioinformatician": user.is_bioinformatician,
+                "is_pi": user.is_pi,
                 "paperless_approval": user.paperless_approval,
             }
         ),

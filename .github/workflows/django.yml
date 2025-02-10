@@ -2,6 +2,12 @@ name: Backend
 
 on:
   workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Debug enabled (~/.ssh/id_rsa)'
+        required: false
+        default: false
   push:
     branches: ['develop']
   pull_request:
@@ -12,18 +18,13 @@ on:
       - ready_for_review
       - closed
 
-# Interestingly... defining env vars here is broken...
-# https://github.com/maxplanck-ie/parkour2/actions/runs/5457117039/workflow
-
 jobs:
   run-prod-bare:
     if: github.repository == 'maxplanck-ie/parkour2'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build and see that DEBUG is respected
-              # ^^ that means, no missing dependencies!
-              # like, before 1349476f52d1c21b096ee44754b7b56f7e57cb30
         run: |
           make prod-ci
 
@@ -31,19 +32,21 @@ jobs:
     if: github.repository == 'maxplanck-ie/parkour2'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Follow instructions
         run: |
           make
           make create-admin
 
   build-and-test:
+    env:
+      UV_SYSTEM_PYTHON: 1
     if: github.repository == 'maxplanck-ie/parkour2'
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ['3.10', 3.11, 3.12]
+        python-version: ['3.10', 3.11, 3.12, 3.13]
     services:
       postgres:
         env:
@@ -59,16 +62,31 @@ jobs:
 
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Setup debug session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        timeout-minutes: 5
+        with:
+          detached: true
+          limit-access-to-actor: true
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Set up UV for py ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "backend/requirements/${{ matrix.python-version }}/*.txt"
+      
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements/prod.txt
-
+          uv pip install setuptools wheel  ## ModuleNotFoundError Py312 lacks pkg_resources
+          uv pip install -r backend/requirements/${{ matrix.python-version }}/base.txt
 
       - name: Verify migrations
         env:
@@ -94,6 +112,5 @@ jobs:
           DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@127.0.0.1:${{ job.services.postgres.ports['5432'] }}/postgres
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
-          pip install -r backend/requirements/testing.txt
+          uv pip install -r backend/requirements/${{ matrix.python-version }}/testing.txt
           python backend/manage.py test backend --parallel
-

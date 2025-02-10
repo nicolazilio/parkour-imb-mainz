@@ -512,8 +512,8 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
     indexGeneratorStore.each(function (item) {
       var itemInPoolIdx = poolGridStore.findBy(function (rec) {
         return (
-          rec.get("record_type") === item.get("record_type") &&
-          rec.get("pk") === item.get("pk")
+          rec.get("pk") === item.get("pk") &&
+          rec.get("record_type") === item.get("record_type")
         );
       });
 
@@ -592,16 +592,11 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
           grid.getStore().sum("sequencing_depth")
         )
       );
-      savePoolButton.enable();
-      savePoolIgnoreErrorsButton.enable();
-      sequencerChemistryCb.enable();
-      minHammingDistanceBox.enable();
-      poolName.enable();
-      poolName.reset();
+      Ext.getCmp("save-pool-button").enable();
 
       var recordTypes = Ext.pluck(
         Ext.Array.pluck(store.data.items, "data"),
-        "record_type"
+        "barcode"
       );
       var samplesWithBarcodes = store.getRange().some(function (e) {
         return (

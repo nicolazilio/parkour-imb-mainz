@@ -16,7 +16,7 @@
       "name": "Homo sapiens",
       "scientific_name": "Homo sapiens",
       "taxon_id": 9606,
-      "archived": false
+      "archived": true
     }
   },
   {
@@ -26,7 +26,7 @@
       "name": "Mus musculus",
       "scientific_name": "Mus musculus",
       "taxon_id": 10090,
-      "archived": false
+      "archived": true
     }
   },
   {
@@ -73,7 +73,7 @@
     "model": "library_sample_shared.organism",
     "pk": 8,
     "fields": {
-      "name": "A. gambiae",
+      "name": "A. gambiae (AgamP4)",
       "scientific_name": "Anopheles gambiae",
       "taxon_id": 7165,
       "archived": false
@@ -225,6 +225,46 @@
     "fields": {
       "name": "W. microscopica",
       "scientific_name": "Wolffia microscopica",
+      "taxon_id": null,
+      "archived": false
+    }
+  },
+  {
+    "model": "library_sample_shared.organism",
+    "pk": 10,
+    "fields": {
+      "name": "H. sapiens (GRCh37 / hg19)",
+      "scientific_name": "Homo sapiens",
+      "taxon_id": null,
+      "archived": false
+    }
+  },
+  {
+    "model": "library_sample_shared.organism",
+    "pk": 11,
+    "fields": {
+      "name": "H. sapiens (GRCh38)",
+      "scientific_name": "Homo sapiens",
+      "taxon_id": null,
+      "archived": false
+    }
+  },
+  {
+    "model": "library_sample_shared.organism",
+    "pk": 12,
+    "fields": {
+      "name": "M. musculus (GRCm38 / mm10)",
+      "scientific_name": "Mus musculus",
+      "taxon_id": null,
+      "archived": false
+    }
+  },
+  {
+    "model": "library_sample_shared.organism",
+    "pk": 13,
+    "fields": {
+      "name": "M. musculus (GRCm39)",
+      "scientific_name": "Mus musculus",
       "taxon_id": null,
       "archived": false
     }

@@ -66,8 +66,6 @@ Ext.define("MainHub.view.pooling.PoolingController", {
         text: "Edit comment",
         margin: "5px 5px 0 5px",
         handler: function () {
-          console.log(self);
-          console.log(parseInt(groupId));
           var store = grid.getStore();
           var comment = "";
           var i = 0;
@@ -90,6 +88,50 @@ Ext.define("MainHub.view.pooling.PoolingController", {
               if (btn == "ok") {
                 self.editComment(self, store, parseInt(groupId), text);
                 //self.syncStore(store.getId());
+              }
+            }
+          });
+        }
+      },
+      {
+        text: "Destroy Pool",
+        margin: "5px",
+        handler: function () {
+          var store = grid.getStore();
+          Ext.Msg.show({
+            title: "Destroy Pool",
+            message: Ext.String.format(
+              "Are you sure that you want to destroy the pool \"Pool_{0}\"? " + 
+              "This will also clear the library preparation data for the " + 
+              "libraries which did't reach the status 'Library Prepared'.",
+              groupId
+            ),
+            buttons: Ext.Msg.YESNO,
+            icon: Ext.Msg.QUESTION,
+            fn: function (btn) {
+              if (btn === "yes") {
+                Ext.Ajax.request({
+                  url: Ext.String.format(
+                    "api/pooling/{0}/destroy_pool/",
+                    groupId
+                  ),
+                  method: "POST",
+                  scope: this,
+                  success: function (response) {
+                    Ext.getStore("Pooling").reload();
+                    new Noty({
+                      text: "The pool has been successfully destroyed.",
+                      type: "success"
+                    }).show();
+                  },
+                  failure: function (response) {
+                    new Noty({
+                      text: "An error occurred while destroying the pool.",
+                      type: "error"
+                    }).show();
+                    console.error(response);
+                  }
+                });
               }
             }
           });
@@ -223,15 +265,13 @@ Ext.define("MainHub.view.pooling.PoolingController", {
       },
       success: function (response) {
         var obj = Ext.JSON.decode(response.responseText);
-
         if (obj.success) {
           Ext.getStore("Pooling").reload();
-          new Noty({ text: "New comment has been saved!" }).show();
+          new Noty({ text: "New comment has been saved successfully." }).show();
         } else {
           new Noty({ text: obj.message, type: "error" }).show();
         }
       },
-
       failure: function (response) {
         var responseText = response.responseText
           ? Ext.JSON.decode(response.responseText)

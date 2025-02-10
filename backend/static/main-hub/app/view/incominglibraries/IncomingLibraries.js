@@ -13,6 +13,15 @@ Ext.define("MainHub.view.incominglibraries.IncomingLibraries", {
   anchor: "100% -1",
   layout: "fit",
 
+  initComponent: function () {
+    this.callParent(arguments);
+    var style = document.createElement("style");
+    style.type = "text/css";
+    style.innerHTML =
+      "td.userEntry.x-grid-cell-selected { color: #404040 !important; background-color: #ffefbb !important; }";
+    document.getElementsByTagName("head")[0].appendChild(style);
+  },
+
   items: [
     {
       xtype: "basegrid",
@@ -150,7 +159,6 @@ Ext.define("MainHub.view.incominglibraries.IncomingLibraries", {
             dataIndex: "name",
             minWidth: 250,
             hideable: false,
-            // locked: true,
             flex: 1,
             tdCls: "userEntry",
             renderer: function (value, meta) {
@@ -160,13 +168,13 @@ Ext.define("MainHub.view.incominglibraries.IncomingLibraries", {
           },
           {
             text: "",
-            dataIndex: "record_type",
+            dataIndex: "barcode",
             resizable: false,
             hideable: false,
             tdCls: "userEntry",
             width: 30,
             renderer: function (value, meta) {
-              return value.charAt(0);
+              return value.charAt(2);
             }
           },
           {
@@ -178,8 +186,8 @@ Ext.define("MainHub.view.incominglibraries.IncomingLibraries", {
             width: 90
           },
           {
-            text: "Nuc. Type",
-            tooltip: "Nucleic Acid Type",
+            text: "Input Material",
+            tooltip: "Input Type",
             dataIndex: "nucleic_acid_type_name",
             tdCls: "userEntry",
             minWidth: 100,
@@ -373,7 +381,6 @@ Ext.define("MainHub.view.incominglibraries.IncomingLibraries", {
               store: "rnaQualityStore",
               regex: new RegExp("^(11|10|[1-9]?(.[0-9]+)?|.[0-9]+)$"),
               regexText: "Only values between 1 and 10 are allowed."
-              // matchFieldWidth: false,
             },
             renderer: function (value) {
               return value === 11 ? "Determined by Facility" : value;
@@ -441,15 +448,6 @@ Ext.define("MainHub.view.incominglibraries.IncomingLibraries", {
               getRequestId: function(children) {
                 return children[0].get("request");
               }
-              // getTooltip: function (children) {
-              //   var totalDepth = Ext.Array.sum(Ext.Array.pluck(Ext.Array.pluck(
-              //     children, 'data'), 'sequencing_depth'));
-
-              //   return Ext.String.format(
-              //     '<strong># of Libraries/Samples:</strong> {0}<br/>' +
-              //     '<strong>Total Sequencing Depth:</strong> {1}',
-              //     children.length, totalDepth);
-              // }
             }
           ]
         }

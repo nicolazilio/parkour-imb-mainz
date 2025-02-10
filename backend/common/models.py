@@ -3,6 +3,7 @@ from datetime import datetime
 from authtools.models import AbstractEmailUser
 from django.conf import settings
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 def get_deleted_org():
@@ -20,6 +21,7 @@ def get_deleted_pi():
 class Organization(models.Model):
     name = models.CharField("Name", max_length=100)
     archived = models.BooleanField("Archived", default=False)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -47,7 +49,7 @@ class CostUnit(OrganizationMixin, models.Model):
         verbose_name="Principal Investigator",
         on_delete=models.SET(get_deleted_pi),
     )
-
+    history = HistoricalRecords()
     archived = models.BooleanField("Archived", default=False)
 
 
@@ -135,23 +137,25 @@ class User(AbstractEmailUser):
         return None
 
     @property
-    def can_solicite_paperless_approval(self):
+    def paperless_approval(self):
+        """
+        This will return 'True' if both PI and User email addresses share the same host
+        We'll be using email spoofing from within VM, the MTA was set by IT.
+        """
         # result_user = False
         # result_pi = False
         # if self.pi is not None and self.pi.email != "Unset":
         #     if (
-        #         not '"' in self.pi.email
-        #         and self.pi.email.split("@")[1] == settings.EMAIL_HOST
+        #         not ('"' in self.pi.email)
+        #         and self.pi.email.split("@")[1] == settings.SERVER_EMAIL.split("@")[1]
         #     ):
         #         result_pi = True
         #     if (
-        #         not '"' in self.email
-        #         and self.email.split("@")[1] == settings.EMAIL_HOST
+        #         not ('"' in self.email)
+        #         and self.email.split("@")[1] == settings.SERVER_EMAIL.split("@")[1]
         #     ):
         #         result_user = True
-        # return result_user and result_pi
-
-        # For IMB'S fork of Parkour, this is irrelevant 
+        # return result_user and result_pi  # and not self.is_pi
         return False
 
     def __str__(self):
@@ -199,6 +203,7 @@ class Duty(models.Model):
         blank=True,
     )
     archived = models.BooleanField("Archived", default=False)
+    history = HistoricalRecords()
 
     class Meta:
         db_table = "duty"

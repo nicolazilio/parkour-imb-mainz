@@ -43,7 +43,29 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = InvoicingSerializer
 
+    def get_start_end_dates(self):
+        today = timezone.datetime.today()
+
+        default_start_date = today - relativedelta(months=0)
+        default_end_date = today
+
+        start_date_param = self.request.query_params.get(
+            "start", default_start_date.strftime("%Y-%m")
+        )
+        end_date_param = self.request.query_params.get(
+            "end", default_end_date.strftime("%Y-%m")
+        )
+
+        start_date = timezone.datetime.strptime(start_date_param, "%Y-%m")
+        end_date = timezone.datetime.strptime(end_date_param, "%Y-%m")
+
+        start_date = start_date.replace(day=1)
+        end_date = end_date.replace(day=1) + relativedelta(months=1, seconds=-1)
+
+        return start_date, end_date
+
     def get_serializer_context(self):
+        start_date, end_date = self.get_start_end_dates()
         today = timezone.datetime.today()
         year = self.request.query_params.get("year", today.year)
         month = self.request.query_params.get("month", today.month)
@@ -72,6 +94,7 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
             )
             .only("read_length", "library_protocol__name")
         )
+
         samples_qs = (
             Sample.objects.filter(~Q(pool=None) & ~Q(status=-1))
             .select_related(
@@ -110,11 +133,6 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request):
         queryset = self.filter_queryset(self.get_queryset())
-
-        today = timezone.datetime.today()
-        year = self.request.query_params.get("year", today.year)
-        month = self.request.query_params.get("month", today.month)
-        ctx = {"curr_month": month, "curr_year": year, "today": today}
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
@@ -157,7 +175,9 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def upload(self, request):
         """Upload Invoicing Report."""
-        month = request.data.get("month", None)
+        month = timezone.datetime.strptime(
+            request.data.get("month", None), "%Y-%m"
+        ).strftime("%Y-%m")
         report = request.data.get("report", None)
         organization_id = request.data.get("organization", None)
 

@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import path, resolve
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from simple_history.admin import SimpleHistoryAdmin
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from openpyxl import load_workbook
@@ -35,8 +36,8 @@ from .models import (
 
 
 @admin.register(Organism)
-class OrganismAdmin(admin.ModelAdmin):
-    list_display = ("name", "scientific_name", "taxon_id", "archived")
+class OrganismAdmin(SimpleHistoryAdmin):
+    list_display = ("name", "label", "yaml")
 
     list_filter = (ArchivedFilter,)
 
@@ -234,7 +235,7 @@ class IndexPairAdmin(admin.ModelAdmin):
                         "The file could not be imported because it contains more than one sheet."
                     )
 
-                # Load firt sheet
+                # Load first sheet
                 sheet = wb.worksheets[0]
 
                 # Get rows
@@ -350,7 +351,7 @@ class IndexPairAdmin(admin.ModelAdmin):
             if error:
                 messages.error(request, error)
             else:
-                messages.success(request, "The import has been succesful.")
+                messages.success(request, "The import has been successful.")
 
             return HttpResponseRedirect(".")
 
@@ -460,7 +461,7 @@ class IndexI7Admin(ImportExportModelAdmin):
 
 
 @admin.register(LibraryProtocol)
-class LibraryProtocolAdmin(admin.ModelAdmin):
+class LibraryProtocolAdmin(SimpleHistoryAdmin):
     list_display = (
         "name",
         "type",
@@ -497,7 +498,7 @@ class LibraryProtocolAdmin(admin.ModelAdmin):
         return ", ".join(obj.nucleic_acid_types.all().values_list('name', flat=True))
 
 @admin.register(LibraryType)
-class LibraryTypeAdmin(admin.ModelAdmin):
+class LibraryTypeAdmin(SimpleHistoryAdmin):
     filter_horizontal = ("library_protocol",)
     list_display = ("name", "archived")
     list_filter = (ArchivedFilter,)

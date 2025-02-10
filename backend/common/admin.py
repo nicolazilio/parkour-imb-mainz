@@ -1,6 +1,7 @@
 from authtools.admin import NamedUserAdmin
 from authtools.forms import UserCreationForm, UserChangeForm
 from common.models import CostUnit, Organization, OIDCGroup, Duty
+from simple_history.admin import SimpleHistoryAdmin
 from django import forms
 from django.conf import settings
 from django.contrib import admin
@@ -80,7 +81,7 @@ class CostUnitInline(admin.TabularInline):
     extra = 1
 
 @admin.register(CostUnit)
-class CostUnitAdmin(admin.ModelAdmin):
+class CostUnitAdmin(SimpleHistoryAdmin):
 
     def has_module_permission(self, request):
         return False
@@ -111,7 +112,7 @@ class OIDCGroupAdmin(admin.ModelAdmin):
 
 
 @admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
+class OrganizationAdmin(SimpleHistoryAdmin):
 
     def has_module_permission(self, request):
         return False
@@ -415,8 +416,8 @@ class UserAdmin(NamedUserAdmin):
                 )
 
 
-# @admin.register(Duty)
-class DutyAdmin(admin.ModelAdmin):
+@admin.register(Duty)
+class DutyAdmin(SimpleHistoryAdmin):
     list_display = (
         "main_name",
         "backup_name",

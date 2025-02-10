@@ -21,8 +21,47 @@ Ext.define("validator.GreaterThanZero", {
   extend: "Ext.data.validator.Validator",
   alias: "data.validator.greaterthanzero",
   validate: function (value) {
-    return value > 0 || "Must be greater than zero";
+    return value > 0 || "Must be greater than 0";
   }
+});
+
+Ext.define("validator.GreaterThanTen", {
+  extend: "Ext.data.validator.Validator",
+  alias: "data.validator.greaterthanten",
+  validate: function (value) {
+    return value >= 10 || "Must be greater or equal to 10";
+  }
+});
+
+Ext.define("validator.Concentration", {
+  extend: "Ext.data.validator.Validator",
+  alias: "data.validator.concentration",
+  validate: function (value, record) {
+    var isValid = true;
+    var natId = record.get("nucleic_acid_type");
+
+    // If natId is defined, it is a sample
+    // otherwise it is a library
+
+    if (natId) {
+      // Sample
+      var nat = Ext.getStore("nucleicAcidTypesStore").findRecord(
+        "id",
+        record.get("nucleic_acid_type")
+      );
+
+      if (nat && !nat.get("single_cell") && value === null) {
+        isValid = false;
+      }
+    } else {
+      // Library
+      if (value === null) {
+        isValid = false;
+      }
+    }
+
+    return isValid || "Must be present";
+  },
 });
 
 Ext.define("validator.Concentration", {

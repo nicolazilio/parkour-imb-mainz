@@ -2,7 +2,6 @@
 
 django-debug-toolbar
 ipdb
-# bpython  ## can't use w/ playwright ATM. greenlet is in conflict...
 pywatchman
 Werkzeug
 rich
@@ -10,3 +9,12 @@ django-migration-linter
 ipykernel
 django-schema-viewer
 django-cors-headers
+django-sql-explorer
+openai
+sql_metadata
+tiktoken
+matplotlib
+python-dateutil
+pandas
+boto3
+xlsxwriter

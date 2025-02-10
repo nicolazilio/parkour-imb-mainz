@@ -117,7 +117,8 @@ Ext.define("MainHub.view.libraries.BatchAddWindow", {
           padding: "0 10px 0 0",
           labelWidth: 145,
           width: 230,
-          minValue: 1
+          minValue: 1,
+          value: 1
         },
         {
           xtype: "button",

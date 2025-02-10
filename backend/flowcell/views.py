@@ -96,6 +96,24 @@ class FlowcellViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = LaneSerializer
 
     def get_queryset(self):
+        today = timezone.datetime.today()
+
+        default_start_date = today - relativedelta(months=0)
+        default_end_date = today
+
+        start_date_param = self.request.query_params.get(
+            "start", default_start_date.strftime("%Y-%m")
+        )
+        end_date_param = self.request.query_params.get(
+            "end", default_end_date.strftime("%Y-%m")
+        )
+
+        start_date = timezone.datetime.strptime(start_date_param, "%Y-%m")
+        end_date = timezone.datetime.strptime(end_date_param, "%Y-%m")
+
+        start_date = start_date.replace(day=1)
+        end_date = end_date.replace(day=1) + relativedelta(months=1, seconds=-1)
+
         libraries_qs = (
             Library.objects.filter(~Q(status=-1))
             .prefetch_related("read_length", "index_type")
@@ -132,26 +150,7 @@ class FlowcellViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        today = timezone.datetime.today()
-
-        default_start_date = today - relativedelta(years=1)
-        default_end_date = (
-            today.replace(day=1) + relativedelta(months=1) - relativedelta(days=1)
-        )
-
-        start_date_param = request.query_params.get(
-            "start", default_start_date.strftime("%d.%m.%Y")
-        )
-        end_date_param = request.query_params.get(
-            "end", default_end_date.strftime("%d.%m.%Y")
-        )
-
-        start_date = timezone.datetime.strptime(start_date_param, "%d.%m.%Y")
-        end_date = timezone.datetime.strptime(end_date_param, "%d.%m.%Y")
-
-        queryset = self.get_queryset().filter(
-            create_time__gte=start_date, create_time__lte=end_date
-        )
+        queryset = self.get_queryset()
 
         serializer = FlowcellListSerializer(queryset, many=True)
         data = list(itertools.chain(*serializer.data))
@@ -373,7 +372,6 @@ class FlowcellViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
 
             writer.writerow([''] * 3)
 
-
         try:
             lane_ids = json.loads(request.data.get("ids", "[]"))
             flowcell_id = request.data.get("flowcell_id", "")
@@ -411,6 +409,32 @@ class FlowcellViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
                 400,
             ) 
 
+    @action(methods=["get"], detail=False)
+    def retrieve_samplesheet(self, request):
+        """Download SampleSheet for all lanes of a flowcell."""
+        flowcell_id = request.query_params.get("flowcell_id", "")
+        flowcell = get_object_or_404(Flowcell, flowcell_id=flowcell_id)
+        lane_pks_list = list(flowcell.lanes.all().values_list("pk", flat=True))
+        post_request = type("MockRequest", (), {})()
+        post_request.data = {
+            "ids": json.dumps(lane_pks_list),
+            "flowcell_id": flowcell.pk,
+        }
+        return self.download_sample_sheet(post_request)
+
+    @action(methods=["get"], detail=False)
+    def retrieve_samplesheet(self, request):
+        """Download SampleSheet for all lanes of a flowcell."""
+        flowcell_id = request.query_params.get("flowcell_id", "")
+        flowcell = get_object_or_404(Flowcell, flowcell_id=flowcell_id)
+        lane_pks_list = list(flowcell.lanes.all().values_list("pk", flat=True))
+        post_request = type("MockRequest", (), {})()
+        post_request.data = {
+            "ids": json.dumps(lane_pks_list),
+            "flowcell_id": flowcell.pk,
+        }
+        return self.download_sample_sheet(post_request)
+
 
 class FlowcellAnalysisViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
@@ -447,7 +471,11 @@ class FlowcellAnalysisViewSet(viewsets.ViewSet):
                     item.name,
                     item.library_type.name,
                     item.library_protocol.name,
-                    item.organism.name,
+                    [
+                        item.organism.name,
+                        item.organism.label,
+                        item.organism.yaml,
+                    ],
                     ind_type,
                     item.sequencing_depth,
                 ]

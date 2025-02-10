@@ -16,6 +16,7 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("api/usage/", include("usage.urls")),
     path("", include("common.urls")),
+    path("", include("request.urls")),
     path("", include("report.urls")),
     path("openapi/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
@@ -35,5 +36,6 @@ if settings.DEBUG:
 
     urlpatterns += [
         path("schema-viewer/", include("schema_viewer.urls")),
+        # path("explorer/", include("explorer.urls")),
         path("__debug__/", include("debug_toolbar.urls")),
     ]

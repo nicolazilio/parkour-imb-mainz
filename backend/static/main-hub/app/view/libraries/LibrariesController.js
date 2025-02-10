@@ -18,9 +18,6 @@ Ext.define("MainHub.view.libraries.LibrariesController", {
       "#showSamplesCheckbox": {
         change: "changeFilter"
       },
-      "#searchField": {
-        change: "changeFilter"
-      },
       "#showAlllr": {
         change: "toggleShowAll"
       },
