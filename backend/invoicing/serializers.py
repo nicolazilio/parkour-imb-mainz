@@ -249,7 +249,7 @@ class InvoicingSerializer(ModelSerializer):
 
         flowcells = self.get_percentage(obj)
 
-        mindt = min(d["flowcell_create_time"] for d in flowcells)
+        mindt = min([d["flowcell_create_time"] for d in flowcells], default=self.context["end_date"])
 
         # min_date = trunc_datetime(timezone.datetime(minYear, minMonth, 1))
         min_date = trunc_datetime(timezone.datetime(mindt.year, mindt.month, 1))

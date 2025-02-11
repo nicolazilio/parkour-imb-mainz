@@ -2,37 +2,47 @@ Ext.define("MainHub.view.invoicing.InvoicingController", {
   extend: "Ext.app.ViewController",
   alias: "controller.invoicing",
 
-  requires: ["Ext.ux.FileUploadWindow"],
+  requires: [
+    "Ext.ux.FileUploadWindow",
+    "MainHub.view.invoicing.UploadReportsWindow",
+    "MainHub.view.invoicing.ViewUploadedReportsWindow",
+  ],
 
   config: {
     control: {
       "#": {
-        activate: "activateView"
+        activate: "activateView",
       },
-      "#billing-period-combobox": {
+      // parkourmonthpicker: {
+      //   select: "selectMonth"
+      // },
+      "#invoicing-billing-period-combobox": {
         select: "selectBillingPeriod",
       },
-      "#organization-combobox": {
+      "#invoicing-organization-combobox": {
         select: "selectOrganization",
       },
       "#invoicing-grid": {
-        resize: "resize"
+        resize: "resize",
       },
       "#download-report": {
-        click: "downloadReport"
+        click: "downloadReport",
       },
       "#upload-report": {
-        click: "uploadReport"
+        click: "uploadReports",
+      },
+      "#view-uploaded-reports": {
+        click: "viewUploadedReports",
       },
       "#fixed-costs-grid,#preparation-costs-grid,#sequencing-costs-grid": {
-        edit: "editPrice"
-      }
-    }
+        edit: "editPrice",
+      },
+    },
   },
 
   activateView: function (view) {
-    view.down("#organization-combobox").getStore().reload();
-    view.down("#billing-period-combobox").getStore().reload();
+    view.down("#invoicing-organization-combobox").getStore().reload();
+    view.down("#invoicing-billing-period-combobox").getStore().reload();
   },
 
   resize: function (el) {
@@ -40,31 +50,19 @@ Ext.define("MainHub.view.invoicing.InvoicingController", {
   },
 
   selectBillingPeriod: function (cb, record) {
-    var organizationId = cb.up().down("#organization-combobox").value;
-    var uploadedReportBtn = cb.up().down("#view-uploaded-report-button");
-    var reportUrl = record
-      .report_urls()
-      .findRecord("organization_id", organizationId);
-    var reportUrl = reportUrl ? reportUrl.get("url") : "";
+    cb.up("grid").down("#download-report").enable();
 
-    // Enable upload/download buttons
-    var grid = cb.up("grid");
-    grid.down("#download-report").enable();
-    grid.down("#upload-report").enable();
+    var organizationId = cb.up().down("#invoicing-organization-combobox").value;
+    var start = new Date(record.get("value")[0], record.get("value")[1] - 1);
+    var end = new Date(start.getTime());
+    end.setMonth(end.getMonth() + 2);
 
-    Ext.getStore("Invoicing").reload({
-      params: {
-        year: record.get("value")[0],
-        month: record.get("value")[1],
-        organization: organizationId,
-      },
-    });
+    var invoicingStore = Ext.getStore("Invoicing");
+    invoicingStore.getProxy().extraParams.start = Ext.Date.format(start, "Y-m");
+    invoicingStore.getProxy().extraParams.end = Ext.Date.format(end, "Y-m");
 
-    if (reportUrl !== "") {
-      uploadedReportBtn.reportUrl = reportUrl;
-      uploadedReportBtn.show();
-    } else {
-      uploadedReportBtn.hide();
+    if (organizationId) {
+      invoicingStore.reload();
     }
   },
 
@@ -86,11 +84,14 @@ Ext.define("MainHub.view.invoicing.InvoicingController", {
       },
     });
 
-    var billingPeriodCb = cb.up().down("#billing-period-combobox");
-    if (billingPeriodCb.value) {
-      this.selectBillingPeriod(billingPeriodCb, billingPeriodCb.getSelection());
-    } else {
-      billingPeriodCb.enable();
+    var invoicingStore = Ext.getStore("Invoicing");
+    invoicingStore.getProxy().extraParams.organization = cb.value;
+
+    var billingPeriod = cb
+      .up()
+      .down("#invoicing-billing-period-combobox").value;
+    if (billingPeriod) {
+      invoicingStore.reload();
     }
   },
 
@@ -107,34 +108,63 @@ Ext.define("MainHub.view.invoicing.InvoicingController", {
     store.sync({
       params: {
         organization: Ext.ComponentQuery.query(
-          "#organization-combobox"
+          "#invoicing-organization-combobox"
         )[0].getValue(),
       },
       success: function (batch) {
         Ext.getCmp("invoicing-grid").getStore().reload();
-        new Noty({ text: "The changes have been saved." }).show();
-      }
+        new Noty({ text: "Changes have been saved successfully." }).show();
+      },
     });
   },
 
   downloadReport: function (btn) {
-    var billingPeriodCb = btn.up("grid").down("#billing-period-combobox");
-    var value = billingPeriodCb.getValue();
+    var grid = btn.up("grid");
+    var billingPeriodCb = grid.down("#invoicing-billing-period-combobox");
+    var organizationCb = btn
+      .up("grid")
+      .down("#invoicing-organization-combobox");
+
+    if (!billingPeriodCb.getValue()) {
+      new Noty({
+        text: "Please select a billing period.",
+        type: "warning",
+      }).show();
+    }
+    if (!organizationCb.getValue()) {
+      new Noty({
+        text: "Please select an organization.",
+        type: "warning",
+      }).show();
+    }
+
+    if (!billingPeriodCb.getValue() || !organizationCb.getValue()) {
+      return;
+    }
+
+    var start = new Date(
+      billingPeriodCb.getValue()[0],
+      billingPeriodCb.getValue()[1] - 1
+    );
+    var end = new Date(start.getTime());
+    end.setMonth(end.getMonth() + 2);
     var form = Ext.create("Ext.form.Panel", { standardSubmit: true });
 
     form.submit({
       url: btn.downloadUrl,
       method: "GET",
       params: {
-        year: value[0],
-        month: value[1],
-        organization: btn.up("grid").down("#organization-combobox").getValue(),
+        start: Ext.Date.format(start, "Y-m"),
+        end: Ext.Date.format(end, "Y-m"),
+        organization: organizationCb.getValue(),
       },
     });
   },
 
   uploadReport: function (btn) {
-    var billingPeriodCb = btn.up("grid").down("#billing-period-combobox");
+    var billingPeriodCb = btn
+      .up("grid")
+      .down("#invoicing-billing-period-combobox");
     var value = billingPeriodCb.getValue();
 
     Ext.create("Ext.ux.FileUploadWindow", {
@@ -147,7 +177,7 @@ Ext.define("MainHub.view.invoicing.InvoicingController", {
         if (!form.isValid()) {
           new Noty({
             text: "You did not select any file.",
-            type: "warning"
+            type: "warning",
           }).show();
           return;
         }
@@ -160,17 +190,25 @@ Ext.define("MainHub.view.invoicing.InvoicingController", {
             month: value[0] + "-" + value[1],
             organization: btn
               .up("grid")
-              .down("#organization-combobox")
+              .down("#invoicing-organization-combobox")
               .getValue(),
           },
           success: function (f, action) {
             new Noty({ text: "Report has been successfully uploaded." }).show();
             billingPeriodCb.getStore().reload();
             uploadWindow.close();
-          }
+          },
         });
-      }
+      },
     });
+  },
+
+  uploadReports: function (btn) {
+    Ext.create("MainHub.view.invoicing.UploadReportsWindow");
+  },
+
+  viewUploadedReports: function (btn) {
+    Ext.create("MainHub.view.invoicing.ViewUploadedReportsWindow");
   },
 
   gridCellTooltipRenderer: function (value, meta) {
@@ -239,5 +277,5 @@ Ext.define("MainHub.view.invoicing.InvoicingController", {
     var name = record.get("name");
     meta.tdAttr = Ext.String.format('data-qtip="{0}"', name);
     return name;
-  }
+  },
 });

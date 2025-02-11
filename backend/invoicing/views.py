@@ -1,11 +1,10 @@
-import calendar
+import datetime
+import math
 
 import pandas as pd
-from common.views import CsrfExemptSessionAuthentication
 from dateutil.relativedelta import relativedelta
 from django.apps import apps
 from django.conf import settings
-from django.db import transaction
 from django.db.models import Min, Prefetch, Q
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
@@ -15,7 +14,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from xlwt import Workbook, XFStyle
+
 from common.models import Organization
+from common.views import CsrfExemptSessionAuthentication
 
 from .models import (
     FixedCosts,
@@ -67,17 +68,13 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
     def get_serializer_context(self):
         start_date, end_date = self.get_start_end_dates()
         today = timezone.datetime.today()
-        year = self.request.query_params.get("year", today.year)
-        month = self.request.query_params.get("month", today.month)
         organization_id = self.request.query_params.get("organization", 0)
-        ctx = {"curr_month": month, "curr_year": year,
+        ctx = {"start_date": start_date, "end_date": end_date,
                "today": today, "organization_id": organization_id}
         return ctx
 
     def get_queryset(self):
-        today = timezone.datetime.today()
-        year = self.request.query_params.get("year", today.year)
-        month = self.request.query_params.get("month", today.month)
+        start_date, end_date = self.get_start_end_dates()
         organization_id = self.request.query_params.get("organization", None)
 
         flowcell_qs = (Flowcell.objects.select_related(
@@ -106,8 +103,8 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
 
         queryset = (
             Request.objects.filter(
-                invoice_date__year=year,
-                invoice_date__month=month,
+                invoice_date__gte=start_date,
+                invoice_date__lte=end_date,
                 sequenced=True,
                 archived=False,
                 cost_unit__organization__id=organization_id
@@ -139,7 +136,9 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(methods=["get"], detail=False)
     def billing_periods(self, request):
-        requests = Request.objects.all().filter(invoice_date__isnull=False, archived=False)
+        requests = Request.objects.all().filter(
+            invoice_date__isnull=False, archived=False
+        )
         data = []
 
         if requests.count() == 0:
@@ -147,21 +146,37 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
 
         start_date = requests.first().invoice_date
         end_date = requests.last().invoice_date
-        end_date = end_date + relativedelta(months=1)
 
-        dates = pd.date_range(start_date, end_date, inclusive="left", freq="M")
-        for dt in dates:
+        # Create quarters
+        start_date = start_date.replace(
+            month=int(start_date.month / 3) * 3 - 1,
+            day=1,
+        )
+        end_date = end_date.replace(month=math.ceil(end_date.month / 3) * 3 + 1, day=1)
+        dates = pd.date_range(
+            start_date.date(), end_date.date(), inclusive="both", freq="Q"
+        )
+
+        for start_dt, end_dt in reversed(list(zip(dates, dates[1:]))):
+            start_dt = start_dt + datetime.timedelta(days=1)
             try:
                 report_urls = []
-                reports = InvoicingReport.objects.filter(month=dt.strftime("%Y-%m"))
+                reports = InvoicingReport.objects.filter(
+                    month=start_dt.strftime("%Y-%m")
+                )
                 for r in reports:
-                    report_urls.append({'organization_id': r.organization.id, 'url': settings.MEDIA_URL + r.report.name})
+                    report_urls.append(
+                        {
+                            "organization_id": r.organization.id,
+                            "url": settings.MEDIA_URL + r.report.name,
+                        }
+                    )
             except InvoicingReport.DoesNotExist:
                 report_urls = []
             data.append(
                 {
-                    "name": dt.strftime("%B %Y"),
-                    "value": [dt.year, dt.month],
+                    "name": f"{start_dt.strftime('%b')} - {end_dt.strftime('%b %Y')}",
+                    "value": [start_dt.year, start_dt.month],
                     "report_urls": report_urls,
                 }
             )
@@ -207,12 +222,15 @@ class InvoicingViewSet(viewsets.ReadOnlyModelViewSet):
     @action(methods=["get"], detail=False)
     def download(self, request):
         """Download Invoicing Report."""
-        today = timezone.datetime.today()
-        year = self.request.query_params.get("year", today.year)
-        month = int(self.request.query_params.get("month", today.month))
-        organization = Organization.objects.get(id=self.request.query_params.get("organization", 0))
 
-        filename = f"Invoicing_Report_{'_'.join(str(organization).split())}_{calendar.month_name[month]}_{year}.xls"
+        start_date, end_date = self.get_start_end_dates()
+        start_date = start_date.strftime("%b")
+        end_date = end_date.strftime("%b%Y")
+        organization = Organization.objects.get(
+            id=self.request.query_params.get("organization", 0)
+        )
+
+        filename = f"Invoicing_Report_{'_'.join(str(organization).split())}_{start_date}{end_date}.xls"
         response = HttpResponse(content_type="application/ms-excel")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
 

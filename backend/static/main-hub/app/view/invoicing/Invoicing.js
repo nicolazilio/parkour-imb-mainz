@@ -4,7 +4,8 @@ Ext.define("MainHub.view.invoicing.Invoicing", {
 
   requires: [
     "MainHub.view.invoicing.BaseCostGrid",
-    "MainHub.view.invoicing.InvoicingController"
+    "MainHub.components.MonthPicker",
+    "MainHub.view.invoicing.InvoicingController",
   ],
 
   controller: "invoicing",
@@ -24,12 +25,41 @@ Ext.define("MainHub.view.invoicing.Invoicing", {
       viewConfig: {
         deferEmptyText: false,
         emptyText: '<h1 style="text-align:center;margin:75px">No items</h1>',
-        stripeRows: false
+        stripeRows: false,
       },
 
       header: {
         title: "Invoicing",
-        height: 56
+        height: 56,
+        items: [
+          {
+            xtype: "combobox",
+            itemId: "invoicing-organization-combobox",
+            fieldLabel: "Organization",
+            store: "Organizations",
+            queryMode: "local",
+            valueField: "id",
+            displayField: "name",
+            forceSelection: true,
+            labelWidth: 85,
+            labelStyle: "color: white;",
+            margin: "0 15px 0 0",
+          },
+          {
+            xtype: "combobox",
+            itemId: "invoicing-billing-period-combobox",
+            fieldLabel: "Billing Period",
+            store: "BillingPeriods",
+            queryMode: "local",
+            valueField: "value",
+            displayField: "name",
+            forceSelection: true,
+            labelWidth: 90,
+            width: 240,
+            labelStyle: "color: white;",
+            margin: "0 15px 0 0",
+          },
+        ],
       },
 
       store: "Invoicing",
@@ -39,19 +69,28 @@ Ext.define("MainHub.view.invoicing.Invoicing", {
       columns: {
         defaults: {
           minWidth: 200,
-          flex: 1
+          flex: 1,
         },
         items: [
           {
             text: "Request",
             dataIndex: "request",
             minWidth: 250,
-            locked: true
+            renderer: function (value, meta) {
+              var boldValue =
+                "<b>" + Ext.util.Format.htmlEncode(value) + "</b>";
+              meta.tdAttr =
+                'data-qtip="' +
+                Ext.util.Format.htmlEncode(value) +
+                '" data-qwidth=300';
+              return boldValue;
+            },
+            locked: true,
           },
           {
             text: "Cost Unit",
             dataIndex: "cost_unit",
-            minWidth: 150
+            minWidth: 150,
           },
           {
             text: "Sequencing Kit",
@@ -61,122 +100,76 @@ Ext.define("MainHub.view.invoicing.Invoicing", {
           {
             text: "Date + Flowcell ID",
             dataIndex: "flowcell",
-            renderer: "listRenderer"
+            renderer: "listRenderer",
           },
           {
             text: "Pool",
             dataIndex: "pool",
-            renderer: "listRenderer"
+            renderer: "listRenderer",
           },
           {
             text: "%",
             dataIndex: "percentage",
-            renderer: "percentageRenderer"
+            renderer: "percentageRenderer",
           },
           {
             text: "Read Length",
             dataIndex: "read_length",
             renderer: "readLengthRenderer",
-            minWidth: 150
+            minWidth: 150,
           },
           {
             text: "# of Libraries/Samples",
             dataIndex: "num_libraries_samples_show",
-            minWidth: 150
+            minWidth: 150,
           },
           {
             text: "Library Protocol",
             dataIndex: "library_protocol",
-            renderer: "libraryProtocolRenderer"
+            renderer: "libraryProtocolRenderer",
           },
           {
             text: "Fixed Costs",
             dataIndex: "fixed_costs",
             renderer: Ext.util.Format.deMoney,
-            minWidth: 130
+            minWidth: 130,
           },
           {
             text: "Sequencing Costs",
             dataIndex: "sequencing_costs",
             renderer: Ext.util.Format.deMoney,
-            minWidth: 130
+            minWidth: 130,
           },
           {
             text: "Preparation Costs",
             dataIndex: "preparation_costs",
             renderer: Ext.util.Format.deMoney,
-            minWidth: 130
+            minWidth: 130,
           },
           {
             text: "Variable Costs",
             dataIndex: "variable_costs",
             renderer: Ext.util.Format.deMoney,
-            minWidth: 130
+            minWidth: 130,
           },
           {
             text: "Total Costs",
             dataIndex: "total_costs",
             renderer: Ext.util.Format.deMoney,
-            minWidth: 130
-          }
-        ]
+            minWidth: 130,
+          },
+        ],
       },
 
       plugins: [
         {
           ptype: "bufferedrenderer",
           trailingBufferZone: 100,
-          leadingBufferZone: 100
-        }
+          leadingBufferZone: 100,
+        },
       ],
 
       dockedItems: [
-        {
-          xtype: "toolbar",
-          dock: "top",
-          items: [
-            {
-              xtype: "combobox",
-              itemId: "organization-combobox",
-              fieldLabel: "Organization",
-              store: "Organizations",
-              queryMode: "local",
-              valueField: "id",
-              displayField: "name",
-              forceSelection: true,
-              labelWidth: 100,
-            },
-            "-",
-            {
-              xtype: "combobox",
-              itemId: "billing-period-combobox",
-              fieldLabel: "Billing Period",
-              store: "BillingPeriods",
-              queryMode: "local",
-              valueField: "value",
-              displayField: "name",
-              forceSelection: true,
-              disabled: true,
-              labelWidth: 100,
-              width: 300,
-            },
-            "-",
-            {
-              itemId: "view-uploaded-report-button",
-              text: "View Uploaded Report",
-              reportUrl: "",
-              hidden: true,
-              handler: function () {
-                var link = document.createElement("a");
-                link.href = this.reportUrl;
-                link.download = this.reportUrl.substr(
-                  this.reportUrl.lastIndexOf("/") + 1
-                );
-                link.click();
-              }
-            }
-          ]
-        },
         {
           xtype: "toolbar",
           dock: "bottom",
@@ -186,14 +179,16 @@ Ext.define("MainHub.view.invoicing.Invoicing", {
               itemId: "download-report",
               downloadUrl: "api/invoicing/download/",
               iconCls: "fa fa-download fa-lg",
-              disabled: true,
             },
             {
               text: "Upload Report",
               itemId: "upload-report",
-              uploadUrl: "api/invoicing/upload/",
               iconCls: "fa fa-upload fa-lg",
-              disabled: true,
+            },
+            {
+              text: "View Uploaded Reports",
+              itemId: "view-uploaded-reports",
+              iconCls: "fa fa-eye fa-lg",
             },
           ],
         },
@@ -211,7 +206,7 @@ Ext.define("MainHub.view.invoicing.Invoicing", {
       collapseDirection: "right",
 
       defaults: {
-        border: 0
+        border: 0,
       },
 
       items: [
@@ -220,23 +215,23 @@ Ext.define("MainHub.view.invoicing.Invoicing", {
           itemId: "fixed-costs-grid",
           configUrl: "fixedcosts",
           title: "Fixed Costs",
-          store: "FixedCosts"
+          store: "FixedCosts",
         },
         {
           xtype: "costgrid",
           itemId: "preparation-costs-grid",
           configUrl: "librarypreparationcosts",
           title: "Preparation Costs",
-          store: "LibraryPreparationCosts"
+          store: "LibraryPreparationCosts",
         },
         {
           xtype: "costgrid",
           itemId: "sequencing-costs-grid",
           configUrl: "sequencingcosts",
           title: "Sequencing Costs",
-          store: "SequencingCosts"
-        }
-      ]
-    }
-  ]
+          store: "SequencingCosts",
+        },
+      ],
+    },
+  ],
 });

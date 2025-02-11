@@ -3,7 +3,7 @@ Ext.define("MainHub.view.invoicing.ViewUploadedReportsWindow", {
 
   title: "View Uploaded Reports",
   height: 150,
-  width: 500,
+  width: 580,
 
   modal: true,
   resizable: false,
@@ -12,20 +12,35 @@ Ext.define("MainHub.view.invoicing.ViewUploadedReportsWindow", {
 
   items: [
     {
-      layout: {
-        type: "vbox",
-        align: "stretch"
-      },
+      xtype: "fieldcontainer",
+      layout: "hbox",
       items: [
         {
-          xtype: "parkourmonthpicker",
-          itemId: "view-report-month-picker",
-          fieldLabel: "Select Month",
-          margin: "10px",
-          allowBlank: false
-        }
-      ]
-    }
+          xtype: "combobox",
+          itemId: "organization-view-invoicing-report-combobox",
+          fieldLabel: "Organization",
+          store: "Organizations",
+          queryMode: "local",
+          valueField: "id",
+          displayField: "name",
+          forceSelection: true,
+          labelWidth: 85,
+          margin: "8px 10px 0 10px",
+        },
+        {
+          xtype: "combobox",
+          itemId: "billing-period-view-invoicing-report-combobox",
+          fieldLabel: "Billing Period",
+          store: "BillingPeriods",
+          queryMode: "local",
+          valueField: "value",
+          displayField: "name",
+          forceSelection: true,
+          labelWidth: 85,
+          margin: "8px 10px 0 10px",
+        },
+      ],
+    },
   ],
 
   dockedItems: [
@@ -36,20 +51,40 @@ Ext.define("MainHub.view.invoicing.ViewUploadedReportsWindow", {
         "->",
         {
           xtype: "button",
-          itemId: "upload-button",
+          itemId: "view-button",
           text: "View",
           width: 80,
           handler: function () {
             var window = this.up("window");
-            var monthPicker = window.down("#view-report-month-picker");
 
-            if (!monthPicker.getValue()) {
+            var billingPeriodCb = window.down(
+              "#billing-period-view-invoicing-report-combobox"
+            );
+            var organizationCb = window.down(
+              "#organization-view-invoicing-report-combobox"
+            );
+
+            if (!billingPeriodCb.getValue()) {
               new Noty({
-                text: "Please select the month.",
-                type: "warning"
+                text: "Please select a billing period.",
+                type: "warning",
               }).show();
+            }
+            if (!organizationCb.getValue()) {
+              new Noty({
+                text: "Please select an organization.",
+                type: "warning",
+              }).show();
+            }
+            if (!billingPeriodCb.getValue() || !organizationCb.getValue()) {
               return;
             }
+
+            var month = new Date(
+              billingPeriodCb.getValue()[0],
+              billingPeriodCb.getValue()[1] - 1
+            );
+            var organization = organizationCb.getValue();
 
             Ext.Ajax.request({
               url: "/api/invoicing/billing_periods/",
@@ -61,11 +96,15 @@ Ext.define("MainHub.view.invoicing.ViewUploadedReportsWindow", {
 
                 Ext.Array.each(responseData, function (item) {
                   if (
-                    item.value[0] == monthPicker.getValue().getFullYear() &&
-                    item.value[1] == monthPicker.getValue().getMonth() + 1
+                    item.value[0] == month.getFullYear() &&
+                    item.value[1] == month.getMonth() + 1
                   ) {
-                    reportUrl = item.report_url;
-                    return false;
+                    Ext.Array.each(item.report_urls, function (report) {
+                      if (report.organization_id == organization) {
+                        reportUrl = report.url;
+                        return false;
+                      }
+                    });
                   }
                 });
 
@@ -77,24 +116,24 @@ Ext.define("MainHub.view.invoicing.ViewUploadedReportsWindow", {
                   );
                   link.click();
                   new Noty({
-                    text: "Report for the month is downloaded successfully.",
-                    type: "success"
+                    text: "Report is downloaded successfully.",
+                    type: "success",
                   }).show();
                 } else {
                   new Noty({
-                    text: "No report found for the selected month.",
-                    type: "warning"
+                    text: "No report found.",
+                    type: "warning",
                   }).show();
                 }
               },
               failure: function (response) {
                 new Noty({
                   text: "Error occurred while fetching report data.",
-                  type: "error"
+                  type: "error",
                 }).show();
-              }
+              },
             });
-          }
+          },
         },
         {
           xtype: "button",
@@ -104,9 +143,9 @@ Ext.define("MainHub.view.invoicing.ViewUploadedReportsWindow", {
           handler: function () {
             var window = this.up("window");
             window.close();
-          }
-        }
-      ]
-    }
-  ]
+          },
+        },
+      ],
+    },
+  ],
 });
