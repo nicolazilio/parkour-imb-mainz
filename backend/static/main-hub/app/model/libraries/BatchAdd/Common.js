@@ -64,37 +64,6 @@ Ext.define("validator.Concentration", {
   },
 });
 
-Ext.define("validator.Concentration", {
-  extend: "Ext.data.validator.Validator",
-  alias: "data.validator.concentration",
-  validate: function (value, record) {
-    var isValid = true;
-    var natId = record.get("nucleic_acid_type");
-
-    // If natId is defined, it is a sample
-    // otherwise it is a library
-
-    if (natId) {
-      // Sample
-      var nat = Ext.getStore("nucleicAcidTypesStore").findRecord(
-        "id",
-        record.get("nucleic_acid_type")
-      );
-
-      if (nat && !nat.get("single_cell") && value === null) {
-        isValid = false;
-      }
-    } else {
-      // Library
-      if (value === null) {
-        isValid = false;
-      }
-    }
-
-    return isValid || "Must be present";
-  },
-});
-
 Ext.define("MainHub.model.libraries.BatchAdd.Common", {
   extend: "Ext.data.Model",
 
