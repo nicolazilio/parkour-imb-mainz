@@ -163,12 +163,6 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
       return false;
     }
 
-    // if (record.get('record_type') === 'Library') {
-    //   indexTypeEditor.disable();
-    // } else {
-    //   indexTypeEditor.enable();
-    // }
-
     // Enable/Disable index boxes based on whether index type is set
 
     var indexI7Editor = Ext.getCmp("indexI7EditorIndexGenerator");
@@ -407,9 +401,9 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
           if (
             dataIndex === "read_length" ||
             (dataIndex === "index_type" &&
-              item.get("record_type") === "Sample") ||
+              item.get("barcode").charAt(2) === "S") ||
             (dataIndex === "index_reads" &&
-              item.get("record_type") === "Sample")
+              item.get("barcode").charAt(2) === "S")
           ) {
             // Set indices to null if index_type of the origin element for the action
             // differs from that of the other records
@@ -489,7 +483,7 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
           var pooledRecordIdx = poolGridStore.findBy(function (item) {
             return (
               item.get("pk") === record.get("pk") &&
-              item.get("record_type") === record.get("record_type")
+              item.get("barcode").charAt(2) === record.get("barcode").charAt(2)
             );
           });
           if (pooledRecordIdx !== -1) {
@@ -513,7 +507,7 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
       var itemInPoolIdx = poolGridStore.findBy(function (rec) {
         return (
           rec.get("pk") === item.get("pk") &&
-          rec.get("record_type") === item.get("record_type")
+          rec.get("barcode").charAt(2) === item.get("barcode").charAt(2)
         );
       });
 
@@ -592,20 +586,25 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
           grid.getStore().sum("sequencing_depth")
         )
       );
-      Ext.getCmp("save-pool-button").enable();
-
+      savePoolButton.enable();
+      savePoolIgnoreErrorsButton.enable();
+      sequencerChemistryCb.enable();
+      minHammingDistanceBox.enable();
+      poolName.enable();
+      poolName.reset();
+      
       var recordTypes = Ext.pluck(
         Ext.Array.pluck(store.data.items, "data"),
         "barcode"
-      );
+      ).map(function(b){return b.charAt(2)});
       var samplesWithBarcodes = store.getRange().some(function (e) {
         return (
-          e.get("record_type") === "Sample" &&
+          e.get("barcode").charAt(2) === "S" &&
           (e.get("index_i7").index || e.get("index_i5").index)
         );
       });
       if (
-        recordTypes.indexOf("Sample") > -1 &&
+        recordTypes.indexOf("S") > -1 &&
         !samplesWithBarcodes &&
         sequencerChemistry > -1 &&
         minHammingDistance > 0
@@ -960,7 +959,7 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
 
     // Check if Index Type is set (only for samples)
     if (
-      record.get("record_type") === "Sample" &&
+      record.get("barcode").charAt(2) === "S" &&
       record.get("index_type") === 0
     ) {
       if (notif) {
@@ -1094,7 +1093,7 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
 
     store.each(function (record) {
       if (
-        record.get("record_type") === "Sample" &&
+        record.get("barcode").charAt(2) === "S" &&
         !record.get("index_i7").index &&
         !record.get("index_i5").index
       ) {
@@ -1217,6 +1216,7 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
           pk: item.get("pk"),
           name: item.get("name"),
           record_type: item.get("record_type"),
+          barcode: item.get("barcode"),
           sequencing_depth: item.get("sequencing_depth"),
           read_length: item.get("read_length"),
           index_type: item.get("index_type"),
@@ -1239,8 +1239,8 @@ Ext.define("MainHub.view.indexgenerator.IndexGeneratorController", {
     } else {
       var itemIdx = store.findBy(function (rec) {
         return (
-          rec.get("record_type") === item.get("record_type") &&
-          rec.get("pk") === item.get("pk")
+          rec.get("pk") === item.get("pk") &&
+          rec.get("barcode").charAt(2) === item.get("barcode").charAt(2)
         );
       });
 
