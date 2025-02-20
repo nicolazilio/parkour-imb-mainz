@@ -96,23 +96,6 @@ class FlowcellViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = LaneSerializer
 
     def get_queryset(self):
-        today = timezone.datetime.today()
-
-        default_start_date = today - relativedelta(months=0)
-        default_end_date = today
-
-        start_date_param = self.request.query_params.get(
-            "start", default_start_date.strftime("%Y-%m")
-        )
-        end_date_param = self.request.query_params.get(
-            "end", default_end_date.strftime("%Y-%m")
-        )
-
-        start_date = timezone.datetime.strptime(start_date_param, "%Y-%m")
-        end_date = timezone.datetime.strptime(end_date_param, "%Y-%m")
-
-        start_date = start_date.replace(day=1)
-        end_date = end_date.replace(day=1) + relativedelta(months=1, seconds=-1)
 
         libraries_qs = (
             Library.objects.filter(~Q(status=-1))
@@ -150,7 +133,28 @@ class FlowcellViewSet(MultiEditMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+
+        today = timezone.datetime.today()
+
+        default_start_date = today - relativedelta(months=0)
+        default_end_date = today
+
+        start_date_param = request.query_params.get(
+            "start", default_start_date.strftime("%Y-%m")
+        )
+        end_date_param = request.query_params.get(
+            "end", default_end_date.strftime("%Y-%m")
+        )
+
+        start_date = timezone.datetime.strptime(start_date_param, "%Y-%m")
+        end_date = timezone.datetime.strptime(end_date_param, "%Y-%m")
+
+        start_date = start_date.replace(day=1)
+        end_date = end_date.replace(day=1) + relativedelta(months=1, seconds=-1)
+
+        queryset = self.get_queryset().filter(
+            create_time__gte=start_date, create_time__lte=end_date
+        )
 
         serializer = FlowcellListSerializer(queryset, many=True)
         data = list(itertools.chain(*serializer.data))
